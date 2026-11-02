@@ -53,6 +53,22 @@
     .payment-box b{color:var(--blue);font-size:17px;white-space:nowrap}
     .payment-box p{margin:7px 0 0;color:var(--muted);font-size:12px}
     .submit[disabled]{cursor:wait;opacity:.65}
+    .date-trigger{width:100%;min-height:50px;padding:13px 14px;border:1px solid #cfd9eb;border-radius:13px;background:white;color:var(--ink);cursor:pointer}
+    .calendar-overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:18px;background:rgba(7,17,48,.55)}
+    .calendar-overlay[hidden]{display:none}
+    .calendar{width:min(100%,380px);padding:18px;border-radius:22px;background:white;box-shadow:0 24px 60px rgba(4,12,38,.3)}
+    .calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .calendar-head strong{font-size:17px;text-transform:capitalize}
+    .calendar-nav,.calendar-close{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:11px;background:#edf3ff;color:var(--navy);font-size:20px;cursor:pointer}
+    .calendar-nav[disabled]{opacity:.3;cursor:default}
+    .calendar-week,.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+    .calendar-week span{text-align:center;color:var(--muted);font-size:12px;font-weight:700}
+    .calendar-days{margin-top:7px}
+    .calendar-day{aspect-ratio:1;border:0;border-radius:50%;background:transparent;color:#a7afbf;font-size:13px}
+    .calendar-day.available{background:#eaf2ff;color:#1556bd;font-weight:850;cursor:pointer;box-shadow:inset 0 0 0 1px #b7d2ff}
+    .calendar-day.available.selected{background:var(--blue);color:white;box-shadow:none}
+    .calendar-day.empty{visibility:hidden}
+    .calendar-note{margin:14px 0 0;color:var(--muted);font-size:11px;text-align:center}
     @media(max-width:340px){.two,.reasons{grid-template-columns:1fr}.slots{grid-template-columns:1fr 1fr}}
   </style>
 </head>
@@ -73,7 +89,7 @@
 
       <div class="section-title"><span class="number">2</span>Choisissez un créneau</div>
       <div class="two">
-        <div class="field"><label for="date">Date souhaitée *</label><select id="date" name="date" required><option value="">Choisir une date</option></select><small>Une seule date disponible par semaine, avec variation du lundi au vendredi.</small></div>
+        <div class="field"><label for="date-display">Date souhaitée *</label><input id="date" name="date" type="hidden"><input id="date-display" class="date-trigger" type="text" placeholder="Choisir une date" readonly required><small>Une seule date disponible par semaine, avec variation du lundi au vendredi.</small></div>
         <div class="field"><label for="mode">Type de rendez-vous *</label><select id="mode" name="mode" required><option value="">Choisir</option><option>Appel WhatsApp</option><option>Visioconférence</option><option>En agence</option></select></div>
       </div>
       <div class="field"><label>Heure souhaitée *</label><div class="slots">
@@ -98,9 +114,18 @@
       <p class="privacy">En continuant, vous acceptez d’être contacté(e) au sujet de votre rendez-vous.</p>
     </form>
   </main>
+  <div class="calendar-overlay" id="calendar-overlay" hidden>
+    <section class="calendar" role="dialog" aria-modal="true" aria-label="Choisir une date disponible">
+      <div class="calendar-head"><button class="calendar-nav" id="calendar-prev" type="button" aria-label="Mois précédent">‹</button><strong id="calendar-title"></strong><button class="calendar-nav" id="calendar-next" type="button" aria-label="Mois suivant">›</button></div>
+      <div class="calendar-week" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      <div class="calendar-days" id="calendar-days"></div>
+      <p class="calendar-note">Les dates en bleu sont disponibles.</p>
+    </section>
+  </div>
   <script>
     const form=document.getElementById('appointment-form');
     const date=document.getElementById('date');
+    const dateDisplay=document.getElementById('date-display');
     const firstAvailable='2026-11-16';
     const lastAvailable='2027-02-16';
     const weekdayRotation=[0,3,1,2,4]; // lundi, jeudi, mardi, mercredi, vendredi
@@ -115,13 +140,42 @@
     }
     if(!availableDates.includes(lastAvailable))availableDates.push(lastAvailable);
     const dateFormatter=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
-    availableDates.forEach(value=>{
-      const option=document.createElement('option');
-      option.value=value;
-      const label=dateFormatter.format(new Date(value+'T00:00:00Z'));
-      option.textContent=label.charAt(0).toUpperCase()+label.slice(1);
-      date.appendChild(option);
-    });
+    const calendarOverlay=document.getElementById('calendar-overlay');
+    const calendarTitle=document.getElementById('calendar-title');
+    const calendarDays=document.getElementById('calendar-days');
+    const calendarPrev=document.getElementById('calendar-prev');
+    const calendarNext=document.getElementById('calendar-next');
+    let visibleMonth=new Date('2026-11-01T00:00:00Z');
+    function renderCalendar(){
+      calendarTitle.textContent=new Intl.DateTimeFormat('fr-FR',{month:'long',year:'numeric',timeZone:'UTC'}).format(visibleMonth);
+      calendarDays.replaceChildren();
+      const year=visibleMonth.getUTCFullYear(),month=visibleMonth.getUTCMonth();
+      const firstDay=(new Date(Date.UTC(year,month,1)).getUTCDay()+6)%7;
+      const count=new Date(Date.UTC(year,month+1,0)).getUTCDate();
+      for(let i=0;i<firstDay;i++){const blank=document.createElement('span');blank.className='calendar-day empty';calendarDays.appendChild(blank)}
+      for(let day=1;day<=count;day++){
+        const value=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const button=document.createElement('button');button.type='button';button.className='calendar-day';button.textContent=day;
+        if(availableDates.includes(value)){
+          button.classList.add('available');
+          if(date.value===value)button.classList.add('selected');
+          button.addEventListener('click',()=>{
+            date.value=value;
+            const label=dateFormatter.format(new Date(value+'T00:00:00Z'));
+            dateDisplay.value=label.charAt(0).toUpperCase()+label.slice(1);
+            dateDisplay.setCustomValidity('');calendarOverlay.hidden=true;
+          });
+        }else button.disabled=true;
+        calendarDays.appendChild(button);
+      }
+      const monthIndex=year*12+month;
+      calendarPrev.disabled=monthIndex<=2026*12+10;
+      calendarNext.disabled=monthIndex>=2027*12+1;
+    }
+    dateDisplay.addEventListener('click',()=>{renderCalendar();calendarOverlay.hidden=false});
+    calendarOverlay.addEventListener('click',event=>{if(event.target===calendarOverlay)calendarOverlay.hidden=true});
+    calendarPrev.addEventListener('click',()=>{visibleMonth.setUTCMonth(visibleMonth.getUTCMonth()-1);renderCalendar()});
+    calendarNext.addEventListener('click',()=>{visibleMonth.setUTCMonth(visibleMonth.getUTCMonth()+1);renderCalendar()});
     function isAvailableDate(value){
       if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
       const start=new Date(firstAvailable+'T00:00:00Z');
@@ -137,7 +191,7 @@
     form.addEventListener('submit',async event=>{
       event.preventDefault();
       const error=document.getElementById('error');
-      date.setCustomValidity(isAvailableDate(date.value)?'':'Cette date n’est pas disponible. Choisissez le jour disponible de la semaine.');
+      dateDisplay.setCustomValidity(isAvailableDate(date.value)?'':'Choisissez une date disponible dans le calendrier.');
       if(!form.checkValidity()){error.style.display='block';form.reportValidity();return}
       error.style.display='none';
       const data=new FormData(form);
