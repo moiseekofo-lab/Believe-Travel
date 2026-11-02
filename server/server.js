@@ -110,25 +110,27 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/api/payments") {
     try {
       const body = await readJson(req);
-      const phoneNumber = normalizePhone(body.telephone);
+      const whatsappPhone = normalizePhone(body.telephone);
+      const paymentPhone = normalizePhone(body.mobileMoneyPhone);
       const required = [body.nom, body.motif, body.date, body.heure, body.mode];
-      if (!phoneNumber || required.some(value => !String(value || "").trim())) {
+      if (!whatsappPhone || !paymentPhone || required.some(value => !String(value || "").trim())) {
         return sendJson(res, 400, { error: "Informations de rendez-vous invalides." }, corsOrigin);
       }
 
       const depositId = randomUUID();
       const appointment = {
         nom: String(body.nom), motif: String(body.motif), date: String(body.date),
-        heure: String(body.heure), mode: String(body.mode), note: String(body.note || "")
+        heure: String(body.heure), mode: String(body.mode), note: String(body.note || ""),
+        whatsappPhone, mobileMoneyPhone: paymentPhone
       };
       if (!pool) throw new Error("DATABASE_URL n’est pas configuré");
-      await pool.query(`INSERT INTO believe_payments(deposit_id,amount,currency,status,phone,appointment) VALUES($1,$2,$3,'PENDING',$4,$5)`, [depositId, PAYMENT_AMOUNT, PAYMENT_CURRENCY, phoneNumber, appointment]);
+      await pool.query(`INSERT INTO believe_payments(deposit_id,amount,currency,status,phone,appointment) VALUES($1,$2,$3,'PENDING',$4,$5)`, [depositId, PAYMENT_AMOUNT, PAYMENT_CURRENCY, whatsappPhone, appointment]);
       const payload = {
         depositId,
         returnUrl: `${PUBLIC_SITE_URL}/rendez-vous/confirmation/?depositId=${depositId}`,
         customerMessage: "Believe Travel",
         amountDetails: { amount: PAYMENT_AMOUNT, currency: PAYMENT_CURRENCY },
-        phoneNumber,
+        phoneNumber: paymentPhone,
         language: "FR",
         country: "COD",
         reason: "Confirmation rendez-vous",

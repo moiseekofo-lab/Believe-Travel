@@ -30,6 +30,7 @@
     .section-title{display:flex;align-items:center;gap:10px;margin:14px 0 15px;font-weight:850;color:var(--navy)}
     .number{display:grid;place-items:center;width:28px;height:28px;background:#eaf2ff;color:var(--blue);border-radius:9px;font-size:13px}
     .field{margin-bottom:15px}
+    .field small{display:block;margin-top:7px;color:var(--muted);font-size:11px;line-height:1.45}
     label{display:block;margin-bottom:7px;color:#364566;font-size:13px;font-weight:750}
     input,select,textarea{width:100%;min-height:50px;padding:13px 14px;border:1px solid #cfd9eb;border-radius:13px;background:white;color:var(--ink);outline:none}
     input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(33,116,245,.12)}
@@ -90,6 +91,7 @@
       <div class="field"><label for="telephone">Numéro WhatsApp *</label><input id="telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+243 000 000 000" required></div>
       <div class="field"><label for="note">Précisez votre projet (facultatif)</label><textarea id="note" name="note" placeholder="Formation souhaitée, dernier diplôme..."></textarea></div>
       <div class="section-title"><span class="number">4</span>Confirmez par paiement</div>
+      <div class="field"><label for="mobileMoneyPhone">Numéro Mobile Money à débiter *</label><input id="mobileMoneyPhone" name="mobileMoneyPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+243 000 000 000" required><small>Ce numéro sera utilisé uniquement pour le paiement. Il peut être différent de votre numéro WhatsApp.</small></div>
       <div class="payment-box"><strong><span>Frais de réservation</span><b>6 500 FC</b></strong><p>Paiement Mobile Money sécurisé par PawaPay. Le montant n’est pas modifiable.</p></div>
       <p class="error" id="error" role="alert">Veuillez compléter tous les champs obligatoires.</p>
       <div class="info"><span>🔒</span><span>Votre rendez-vous sera confirmé automatiquement après validation du paiement de 6 500 CDF par PawaPay.</span></div>
