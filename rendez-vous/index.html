@@ -54,9 +54,9 @@
     .payment-box p{margin:7px 0 0;color:var(--muted);font-size:12px}
     .submit[disabled]{cursor:wait;opacity:.65}
     .date-trigger{width:100%;min-height:50px;padding:13px 14px;border:1px solid #cfd9eb;border-radius:13px;background:white;color:var(--ink);cursor:pointer}
-    .calendar-overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:18px;background:rgba(7,17,48,.55)}
+    .calendar-overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;width:100vw;max-width:none;padding:16px;background:rgba(7,17,48,.55)}
     .calendar-overlay[hidden]{display:none}
-    .calendar{width:min(100%,380px);padding:18px;border-radius:22px;background:white;box-shadow:0 24px 60px rgba(4,12,38,.3)}
+    .calendar{width:calc(100vw - 32px);max-width:380px;padding:18px;border-radius:22px;background:white;box-shadow:0 24px 60px rgba(4,12,38,.3)}
     .calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     .calendar-head strong{font-size:17px;text-transform:capitalize}
     .calendar-nav,.calendar-close{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:11px;background:#edf3ff;color:var(--navy);font-size:20px;cursor:pointer}
@@ -65,8 +65,8 @@
     .calendar-week span{text-align:center;color:var(--muted);font-size:12px;font-weight:700}
     .calendar-days{margin-top:7px}
     .calendar-day{aspect-ratio:1;border:0;border-radius:50%;background:transparent;color:#a7afbf;font-size:13px}
-    .calendar-day.available{background:transparent;color:var(--blue);font-weight:850;cursor:pointer;box-shadow:none}
-    .calendar-day.available.selected{background:transparent;color:var(--blue);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;box-shadow:none}
+    .calendar-day.available{background:transparent;color:var(--ink);font-weight:850;cursor:pointer;box-shadow:none}
+    .calendar-day.available.selected{background:transparent;color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;box-shadow:none}
     .calendar-day.empty{visibility:hidden}
     .calendar-note{margin:14px 0 0;color:var(--muted);font-size:11px;text-align:center}
     @media(max-width:340px){.two,.reasons{grid-template-columns:1fr}.slots{grid-template-columns:1fr 1fr}}
@@ -119,7 +119,7 @@
       <div class="calendar-head"><button class="calendar-nav" id="calendar-prev" type="button" aria-label="Mois précédent">‹</button><strong id="calendar-title"></strong><button class="calendar-nav" id="calendar-next" type="button" aria-label="Mois suivant">›</button></div>
       <div class="calendar-week" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
       <div class="calendar-days" id="calendar-days"></div>
-      <p class="calendar-note">Les dates en bleu sont disponibles.</p>
+      <p class="calendar-note">Les dates en gras sont disponibles.</p>
     </section>
   </div>
   <script>
