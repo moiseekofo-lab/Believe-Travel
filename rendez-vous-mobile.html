@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b173e">
+  <title>Prendre rendez-vous | Believe Travel</title>
+  <style>
+    :root{--navy:#0b173e;--blue:#2174f5;--lime:#c9f019;--ink:#192342;--muted:#65718b;--line:#e4eaf4;--soft:#f5f8ff;--white:#fff}
+    *{box-sizing:border-box}
+    body{margin:0;background:#e9eef8;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+    button,input,select,textarea{font:inherit}
+    .phone{width:100%;max-width:430px;min-height:100dvh;margin:auto;background:var(--white);box-shadow:0 20px 55px rgba(11,23,62,.13)}
+    header{position:relative;overflow:hidden;background:var(--navy);color:white;padding:18px 20px 28px}
+    header:after{content:"";position:absolute;right:-58px;top:-42px;width:170px;height:170px;border:34px solid rgba(201,240,25,.08);border-radius:50%}
+    .brand{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between}
+    .brand-name{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:850}
+    .mark{display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:var(--lime);font-size:20px}
+    .back{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(255,255,255,.22);border-radius:12px;color:white;text-decoration:none;font-size:20px}
+    header h1{position:relative;z-index:1;margin:30px 0 7px;font-size:29px;line-height:1.12;letter-spacing:-.8px}
+    header p{position:relative;z-index:1;margin:0;color:#cfdafa;font-size:14px}
+    .progress{display:flex;gap:6px;padding:18px 20px 2px;background:white}
+    .progress i{height:5px;flex:1;border-radius:9px;background:#e8edf6}
+    .progress i.active{background:var(--blue)}
+    form{padding:18px 20px calc(28px + env(safe-area-inset-bottom))}
+    .section-title{display:flex;align-items:center;gap:10px;margin:14px 0 15px;font-weight:850;color:var(--navy)}
+    .number{display:grid;place-items:center;width:28px;height:28px;background:#eaf2ff;color:var(--blue);border-radius:9px;font-size:13px}
+    .field{margin-bottom:15px}
+    label{display:block;margin-bottom:7px;color:#364566;font-size:13px;font-weight:750}
+    input,select,textarea{width:100%;min-height:50px;padding:13px 14px;border:1px solid #cfd9eb;border-radius:13px;background:white;color:var(--ink);outline:none}
+    input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(33,116,245,.12)}
+    textarea{min-height:88px;resize:vertical}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .reasons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .reason input,.slot input{position:absolute;opacity:0;pointer-events:none}
+    .reason span{display:flex;align-items:center;gap:8px;min-height:58px;padding:10px;border:1px solid var(--line);border-radius:13px;background:var(--soft);font-size:12px;font-weight:750}
+    .reason input:checked+span{border-color:var(--blue);background:#edf4ff;color:#1556bd;box-shadow:inset 0 0 0 1px var(--blue)}
+    .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .slot span{display:grid;place-items:center;padding:11px 5px;border:1px solid var(--line);border-radius:11px;font-size:13px;font-weight:750}
+    .slot input:checked+span{background:var(--navy);border-color:var(--navy);color:white}
+    .info{display:flex;gap:10px;margin:18px 0;padding:12px;border-radius:13px;background:#f3f8df;color:#42501e;font-size:12px}
+    .submit{width:100%;min-height:54px;border:0;border-radius:15px;background:var(--blue);color:white;font-weight:850;box-shadow:0 10px 24px rgba(33,116,245,.23);cursor:pointer}
+    .submit:active{transform:translateY(1px)}
+    .privacy{text-align:center;margin:11px 8px 0;color:var(--muted);font-size:11px}
+    .error{display:none;margin:-3px 0 12px;color:#b42318;font-size:12px}
+    @media(max-width:340px){.two,.reasons{grid-template-columns:1fr}.slots{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <header>
+      <div class="brand"><div class="brand-name"><span class="mark">✈️</span>Believe Travel</div><a class="back" href="index.html" aria-label="Retour">‹</a></div>
+      <h1>Planifiez votre<br>rendez-vous</h1>
+      <p>Choisissez le moment qui vous convient. Notre équipe confirmera votre demande sur WhatsApp.</p>
+    </header>
+    <div class="progress" aria-hidden="true"><i class="active"></i><i class="active"></i><i></i></div>
+    <form id="appointment-form">
+      <div class="section-title"><span class="number">1</span>Quel est votre besoin ?</div>
+      <div class="reasons field">
+        <label class="reason"><input type="radio" name="motif" value="Orientation études" required><span>🎓 Orientation études</span></label>
+        <label class="reason"><input type="radio" name="motif" value="Bourse 2027"><span>📚 Bourse 2027</span></label>
+        <label class="reason"><input type="radio" name="motif" value="Dossier de visa"><span>🛂 Dossier de visa</span></label>
+        <label class="reason"><input type="radio" name="motif" value="Autre demande"><span>💬 Autre demande</span></label>
+      </div>
+
+      <div class="section-title"><span class="number">2</span>Choisissez un créneau</div>
+      <div class="two">
+        <div class="field"><label for="date">Date souhaitée *</label><input id="date" name="date" type="date" required></div>
+        <div class="field"><label for="mode">Type de rendez-vous *</label><select id="mode" name="mode" required><option value="">Choisir</option><option>Appel WhatsApp</option><option>Visioconférence</option><option>En agence</option></select></div>
+      </div>
+      <div class="field"><label>Heure souhaitée *</label><div class="slots">
+        <label class="slot"><input type="radio" name="heure" value="09:00" required><span>09:00</span></label>
+        <label class="slot"><input type="radio" name="heure" value="11:00"><span>11:00</span></label>
+        <label class="slot"><input type="radio" name="heure" value="14:00"><span>14:00</span></label>
+        <label class="slot"><input type="radio" name="heure" value="16:00"><span>16:00</span></label>
+        <label class="slot"><input type="radio" name="heure" value="17:30"><span>17:30</span></label>
+      </div></div>
+
+      <div class="section-title"><span class="number">3</span>Vos coordonnées</div>
+      <div class="field"><label for="nom">Nom complet *</label><input id="nom" name="nom" autocomplete="name" placeholder="Ex. Marie Tshibola" required></div>
+      <div class="field"><label for="telephone">Numéro WhatsApp *</label><input id="telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+243 000 000 000" required></div>
+      <div class="field"><label for="note">Précisez votre projet (facultatif)</label><textarea id="note" name="note" placeholder="Formation souhaitée, dernier diplôme..."></textarea></div>
+      <p class="error" id="error" role="alert">Veuillez compléter tous les champs obligatoires.</p>
+      <div class="info"><span>🔒</span><span>Votre rendez-vous sera confirmé par notre équipe. L’envoi du formulaire ne garantit pas encore le créneau.</span></div>
+      <button class="submit" type="submit">Confirmer sur WhatsApp →</button>
+      <p class="privacy">En continuant, vous acceptez d’être contacté(e) au sujet de votre demande.</p>
+    </form>
+  </main>
+  <script>
+    const form=document.getElementById('appointment-form');
+    const date=document.getElementById('date');
+    const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); date.min=now.toISOString().split('T')[0];
+    form.addEventListener('submit',event=>{
+      event.preventDefault();
+      const error=document.getElementById('error');
+      if(!form.checkValidity()){error.style.display='block';form.reportValidity();return}
+      error.style.display='none';
+      const data=new FormData(form);
+      const chosen=new Date(data.get('date')+'T12:00:00');
+      const formatted=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(chosen);
+      const message=[
+        'Bonjour Believe Travel,','Je souhaite prendre rendez-vous.','',
+        `Nom : ${data.get('nom')}`,`WhatsApp : ${data.get('telephone')}`,
+        `Motif : ${data.get('motif')}`,`Date : ${formatted}`,`Heure : ${data.get('heure')}`,
+        `Type : ${data.get('mode')}`,`Précisions : ${data.get('note')||'Aucune'}`,'',
+        'Merci de me confirmer la disponibilité de ce créneau.'
+      ].join('\n');
+      window.open('https://wa.me/243858909982?text='+encodeURIComponent(message),'_blank','noopener');
+    });
+  </script>
+</body>
+</html>
