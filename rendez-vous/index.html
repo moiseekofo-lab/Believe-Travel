@@ -14,7 +14,7 @@
     body{margin:0;background:#e9eef8;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
     button,input,select,textarea{font:inherit}
     .phone{width:100%;max-width:430px;min-height:100dvh;margin:auto;background:var(--white);box-shadow:0 20px 55px rgba(11,23,62,.13)}
-    header{position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(11,23,62,.86),rgba(11,23,62,.58)),url("../assets/rendez-vous-banner.jpg") center 31%/cover no-repeat;color:white;padding:18px 20px 28px}
+    header{position:relative;overflow:hidden;min-height:250px;box-sizing:border-box;background:linear-gradient(90deg,rgba(11,23,62,.86),rgba(11,23,62,.58)),url("../assets/rendez-vous-banner.jpg") center 31%/cover no-repeat;color:white;padding:18px 20px 28px}
     header:after{content:"";position:absolute;right:-58px;top:-42px;width:170px;height:170px;border:34px solid rgba(201,240,25,.08);border-radius:50%}
     .brand{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between}
     .brand-name{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:850}
@@ -60,8 +60,6 @@
   <main class="phone">
     <header>
       <div class="brand"><div class="brand-name"><span class="logo-box"><img class="logo-img" src="../assets/believe-travel-logo.png" alt="Logo Believe Travel"></span>Believe Travel</div><a class="back" href="../" aria-label="Retour">‹</a></div>
-      <h1>Planifiez votre<br>rendez-vous</h1>
-      <p>Choisissez le moment qui vous convient. Notre équipe confirmera votre demande sur WhatsApp.</p>
     </header>
     <div class="progress" aria-hidden="true"><i class="active"></i><i class="active"></i><i></i></div>
     <form id="appointment-form">
