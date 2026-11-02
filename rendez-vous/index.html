@@ -110,7 +110,7 @@
       <div class="payment-box"><strong><span>Frais de réservation</span><b>6 500 FC</b></strong><p>Paiement Mobile Money sécurisé par PawaPay. Le montant n’est pas modifiable.</p></div>
       <p class="error" id="error" role="alert">Veuillez compléter tous les champs obligatoires.</p>
       <div class="info"><span>🔒</span><span>Votre rendez-vous sera confirmé automatiquement après validation du paiement de 6 500 CDF par PawaPay.</span></div>
-      <button class="submit" type="submit">Payer 6 500 FC et confirmer →</button>
+      <button class="submit" type="submit">Payer 6 500 FC et confirmer</button>
       <p class="privacy">En continuant, vous acceptez d’être contacté(e) au sujet de votre rendez-vous.</p>
     </form>
   </main>
@@ -206,7 +206,7 @@
         window.location.assign(result.redirectUrl);
       }catch(paymentError){
         error.textContent=paymentError.message||'Impossible de lancer le paiement. Réessayez.';
-        error.style.display='block';button.disabled=false;button.textContent='Payer 6 500 FC et confirmer →';
+        error.style.display='block';button.disabled=false;button.textContent='Payer 6 500 FC et confirmer';
       }
     });
   </script>
