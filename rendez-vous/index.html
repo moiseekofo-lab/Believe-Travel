@@ -73,7 +73,7 @@
 
       <div class="section-title"><span class="number">2</span>Choisissez un créneau</div>
       <div class="two">
-        <div class="field"><label for="date">Date souhaitée *</label><input id="date" name="date" type="date" required><small>Un seul jour disponible par semaine, du lundi au vendredi.</small></div>
+        <div class="field"><label for="date">Date souhaitée *</label><select id="date" name="date" required><option value="">Choisir une date</option></select><small>Une seule date disponible par semaine, avec variation du lundi au vendredi.</small></div>
         <div class="field"><label for="mode">Type de rendez-vous *</label><select id="mode" name="mode" required><option value="">Choisir</option><option>Appel WhatsApp</option><option>Visioconférence</option><option>En agence</option></select></div>
       </div>
       <div class="field"><label>Heure souhaitée *</label><div class="slots">
@@ -104,7 +104,24 @@
     const firstAvailable='2026-11-16';
     const lastAvailable='2027-02-16';
     const weekdayRotation=[0,3,1,2,4]; // lundi, jeudi, mardi, mercredi, vendredi
-    date.min=firstAvailable;date.max=lastAvailable;
+    const availableDates=[];
+    const startDate=new Date(firstAvailable+'T00:00:00Z');
+    const endDate=new Date(lastAvailable+'T00:00:00Z');
+    for(let week=0;;week++){
+      const available=new Date(startDate);
+      available.setUTCDate(available.getUTCDate()+week*7+weekdayRotation[week%weekdayRotation.length]);
+      if(available>endDate)break;
+      availableDates.push(available.toISOString().slice(0,10));
+    }
+    if(!availableDates.includes(lastAvailable))availableDates.push(lastAvailable);
+    const dateFormatter=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+    availableDates.forEach(value=>{
+      const option=document.createElement('option');
+      option.value=value;
+      const label=dateFormatter.format(new Date(value+'T00:00:00Z'));
+      option.textContent=label.charAt(0).toUpperCase()+label.slice(1);
+      date.appendChild(option);
+    });
     function isAvailableDate(value){
       if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
       const start=new Date(firstAvailable+'T00:00:00Z');
@@ -116,9 +133,6 @@
       const week=Math.floor(days/7);
       return days===week*7+weekdayRotation[week%weekdayRotation.length];
     }
-    date.addEventListener('input',()=>{
-      date.setCustomValidity(!date.value||isAvailableDate(date.value)?'':'Cette date n’est pas disponible. Choisissez le jour disponible de la semaine.');
-    });
     const API_BASE='https://believe-travel-payments.onrender.com';
     form.addEventListener('submit',async event=>{
       event.preventDefault();
