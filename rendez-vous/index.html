@@ -47,6 +47,11 @@
     .submit:active{transform:translateY(1px)}
     .privacy{text-align:center;margin:11px 8px 0;color:var(--muted);font-size:11px}
     .error{display:none;margin:-3px 0 12px;color:#b42318;font-size:12px}
+    .payment-box{margin:18px 0;padding:16px;border:1px solid #dce7f8;border-radius:16px;background:#f7faff}
+    .payment-box strong{display:flex;justify-content:space-between;gap:15px;color:var(--navy);font-size:14px}
+    .payment-box b{color:var(--blue);font-size:17px;white-space:nowrap}
+    .payment-box p{margin:7px 0 0;color:var(--muted);font-size:12px}
+    .submit[disabled]{cursor:wait;opacity:.65}
     @media(max-width:340px){.two,.reasons{grid-template-columns:1fr}.slots{grid-template-columns:1fr 1fr}}
   </style>
 </head>
@@ -84,32 +89,38 @@
       <div class="field"><label for="nom">Nom complet *</label><input id="nom" name="nom" autocomplete="name" placeholder="Ex. Marie Tshibola" required></div>
       <div class="field"><label for="telephone">Numéro WhatsApp *</label><input id="telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+243 000 000 000" required></div>
       <div class="field"><label for="note">Précisez votre projet (facultatif)</label><textarea id="note" name="note" placeholder="Formation souhaitée, dernier diplôme..."></textarea></div>
+      <div class="section-title"><span class="number">4</span>Confirmez par paiement</div>
+      <div class="payment-box"><strong><span>Frais de réservation</span><b>6 500 FC</b></strong><p>Paiement Mobile Money sécurisé par PawaPay. Le montant n’est pas modifiable.</p></div>
       <p class="error" id="error" role="alert">Veuillez compléter tous les champs obligatoires.</p>
-      <div class="info"><span>🔒</span><span>Votre rendez-vous sera confirmé par notre équipe. L’envoi du formulaire ne garantit pas encore le créneau.</span></div>
-      <button class="submit" type="submit">Confirmer sur WhatsApp →</button>
-      <p class="privacy">En continuant, vous acceptez d’être contacté(e) au sujet de votre demande.</p>
+      <div class="info"><span>🔒</span><span>Votre rendez-vous sera confirmé automatiquement après validation du paiement de 6 500 CDF par PawaPay.</span></div>
+      <button class="submit" type="submit">Payer 6 500 FC et confirmer →</button>
+      <p class="privacy">En continuant, vous acceptez d’être contacté(e) au sujet de votre rendez-vous.</p>
     </form>
   </main>
   <script>
     const form=document.getElementById('appointment-form');
     const date=document.getElementById('date');
     const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); date.min=now.toISOString().split('T')[0];
-    form.addEventListener('submit',event=>{
+    const API_BASE='https://believe-travel-payments.onrender.com';
+    form.addEventListener('submit',async event=>{
       event.preventDefault();
       const error=document.getElementById('error');
       if(!form.checkValidity()){error.style.display='block';form.reportValidity();return}
       error.style.display='none';
       const data=new FormData(form);
-      const chosen=new Date(data.get('date')+'T12:00:00');
-      const formatted=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(chosen);
-      const message=[
-        'Bonjour Believe Travel,','Je souhaite prendre rendez-vous.','',
-        `Nom : ${data.get('nom')}`,`WhatsApp : ${data.get('telephone')}`,
-        `Motif : ${data.get('motif')}`,`Date : ${formatted}`,`Heure : ${data.get('heure')}`,
-        `Type : ${data.get('mode')}`,`Précisions : ${data.get('note')||'Aucune'}`,'',
-        'Merci de me confirmer la disponibilité de ce créneau.'
-      ].join('\n');
-      window.open('https://wa.me/243858909982?text='+encodeURIComponent(message),'_blank','noopener');
+      const appointment=Object.fromEntries(data.entries());
+      const button=form.querySelector('.submit');
+      button.disabled=true;button.textContent='Connexion à PawaPay…';
+      try{
+        const response=await fetch(API_BASE+'/api/payments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(appointment)});
+        const result=await response.json();
+        if(!response.ok||!result.redirectUrl)throw new Error(result.error||'Paiement indisponible.');
+        localStorage.setItem('believeTravelAppointment',JSON.stringify({...appointment,depositId:result.depositId}));
+        window.location.assign(result.redirectUrl);
+      }catch(paymentError){
+        error.textContent=paymentError.message||'Impossible de lancer le paiement. Réessayez.';
+        error.style.display='block';button.disabled=false;button.textContent='Payer 6 500 FC et confirmer →';
+      }
     });
   </script>
 </body>

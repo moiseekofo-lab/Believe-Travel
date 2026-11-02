@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b173e">
+  <title>Confirmation du rendez-vous | Believe Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#0b173e;--blue:#2174f5;--lime:#c9f019;--ink:#192342;--muted:#65718b;--white:#fff}
+    *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:22px;background:#e9eef8;color:var(--ink);font-family:Inter,system-ui,sans-serif}
+    main{width:min(100%,410px);overflow:hidden;border-radius:24px;background:var(--white);box-shadow:0 20px 55px rgba(11,23,62,.14)}
+    header{padding:25px;background:var(--navy);color:white}.brand{display:flex;align-items:center;gap:10px;font-weight:850}.brand img{width:42px;height:42px;border-radius:13px;object-fit:contain}
+    section{padding:30px 24px;text-align:center}.icon{display:grid;place-items:center;width:72px;height:72px;margin:0 auto 18px;border-radius:50%;background:#edf3ff;font-size:32px}
+    h1{margin:0 0 10px;color:var(--navy);font-size:25px;line-height:1.2}p{margin:0;color:var(--muted);font-size:14px}.details{margin:22px 0;padding:15px;border-radius:14px;background:#f7f9fe;text-align:left;font-size:13px}.details div{display:flex;justify-content:space-between;gap:12px;margin:7px 0}.details b{color:var(--navy)}
+    .button{display:block;padding:14px;border-radius:14px;background:var(--blue);color:white;text-decoration:none;font-weight:800}.pending .icon{animation:pulse 1.4s infinite}@keyframes pulse{50%{transform:scale(.9);opacity:.6}}
+  </style>
+</head>
+<body><main><header><div class="brand"><img src="../../assets/believe-travel-logo.png" alt="Logo Believe Travel">Believe Travel</div></header><section class="pending" id="status"><div class="icon">⏳</div><h1>Vérification du paiement</h1><p>Nous confirmons votre paiement Mobile Money auprès de PawaPay…</p></section></main>
+  <script>
+    const API_BASE='https://believe-travel-payments.onrender.com';
+    const section=document.getElementById('status');
+    const depositId=new URLSearchParams(location.search).get('depositId');
+    const appointment=JSON.parse(localStorage.getItem('believeTravelAppointment')||'{}');
+    const escapeHtml=value=>String(value||'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    function renderSuccess(){
+      section.className='';section.innerHTML=`<div class="icon" style="background:#eff8d2">✓</div><h1>Rendez-vous confirmé !</h1><p>Votre paiement de 6 500 CDF a été validé.</p><div class="details"><div><span>Nom</span><b>${escapeHtml(appointment.nom)}</b></div><div><span>Date</span><b>${escapeHtml(appointment.date)}</b></div><div><span>Heure</span><b>${escapeHtml(appointment.heure)}</b></div><div><span>Type</span><b>${escapeHtml(appointment.mode)}</b></div></div><a class="button" href="../">Terminer</a>`;
+      localStorage.removeItem('believeTravelAppointment');
+    }
+    function renderFailure(message){section.className='';section.innerHTML=`<div class="icon">!</div><h1>Paiement non confirmé</h1><p>${escapeHtml(message)}</p><div style="height:20px"></div><a class="button" href="../">Réessayer</a>`}
+    async function check(attempt=0){
+      if(!depositId)return renderFailure('Référence de paiement manquante.');
+      try{const response=await fetch(`${API_BASE}/api/payments/${encodeURIComponent(depositId)}`);const result=await response.json();if(result.status==='COMPLETED')return renderSuccess();if(result.status==='FAILED')return renderFailure('Le paiement a échoué ou a été annulé.');if(attempt<20)return setTimeout(()=>check(attempt+1),3000);renderFailure('Le paiement est encore en traitement. Revenez sur cette page dans quelques instants.')}catch(error){if(attempt<10)return setTimeout(()=>check(attempt+1),3000);renderFailure('Impossible de vérifier le paiement pour le moment.')}
+    }
+    check();
+  </script>
+</body>
+</html>
