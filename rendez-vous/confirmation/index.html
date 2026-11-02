@@ -32,7 +32,7 @@
     function renderFailure(message){section.className='';section.innerHTML=`<div class="icon">!</div><h1>Paiement non confirmé</h1><p>${escapeHtml(message)}</p><div style="height:20px"></div><a class="button" href="../">Réessayer</a>`}
     async function check(attempt=0){
       if(!depositId)return renderFailure('Référence de paiement manquante.');
-      try{const response=await fetch(`${API_BASE}/api/payments/${encodeURIComponent(depositId)}`);const result=await response.json();if(result.status==='CONFIRMED')return renderSuccess();if(result.status==='FAILED')return renderFailure('Le paiement a échoué ou a été annulé.');if(attempt<20)return setTimeout(()=>check(attempt+1),3000);renderFailure('Le paiement est encore en traitement. Revenez sur cette page dans quelques instants.')}catch(error){if(attempt<10)return setTimeout(()=>check(attempt+1),3000);renderFailure('Impossible de vérifier le paiement pour le moment.')}
+      try{const response=await fetch(`${API_BASE}/api/payments/${encodeURIComponent(depositId)}`);const result=await response.json();if(result.status==='CONFIRMED')return renderSuccess();if(['FAILED','CANCELLED'].includes(result.status))return renderFailure(result.status==='CANCELLED'?'Paiement annulé après 15 minutes sans confirmation.':'Le paiement a échoué.');if(attempt<300)return setTimeout(()=>check(attempt+1),3000);renderFailure('Paiement annulé après 15 minutes sans confirmation.')}catch(error){if(attempt<10)return setTimeout(()=>check(attempt+1),3000);renderFailure('Impossible de vérifier le paiement pour le moment.')}
     }
     check();
   </script>

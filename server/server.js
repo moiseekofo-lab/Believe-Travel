@@ -46,7 +46,12 @@ function localPaymentStatus(remoteStatus) {
 async function saveRemoteStatus(depositId, remoteData) {
   if (!pool || !remoteData) return;
   const status = localPaymentStatus(String(remoteData.status || "").toUpperCase());
-  await pool.query(`UPDATE believe_payments SET status=$2,provider_transaction_id=$3,failure_reason=$4,pawa_payload=$5,updated_at=NOW(),completed_at=CASE WHEN $2='CONFIRMED' THEN COALESCE(completed_at,NOW()) ELSE completed_at END WHERE deposit_id=$1`, [depositId, status, remoteData.providerTransactionId || null, remoteData?.failureReason?.failureMessage || null, remoteData]);
+  await pool.query(`UPDATE believe_payments SET status=$2,provider_transaction_id=$3,failure_reason=$4,pawa_payload=$5,updated_at=NOW(),completed_at=CASE WHEN $2='CONFIRMED' THEN COALESCE(completed_at,NOW()) ELSE completed_at END WHERE deposit_id=$1 AND (status <> 'CANCELLED' OR $2='CONFIRMED')`, [depositId, status, remoteData.providerTransactionId || null, remoteData?.failureReason?.failureMessage || null, remoteData]);
+}
+
+async function expireStalePayments() {
+  if (!pool) return;
+  await pool.query(`UPDATE believe_payments SET status='CANCELLED',failure_reason='Paiement non confirmé dans les 15 minutes',updated_at=NOW() WHERE status IN ('PENDING','PROCESSING') AND created_at <= NOW() - INTERVAL '15 minutes'`);
 }
 
 function sendJson(res, status, body, origin = ALLOWED_ORIGIN) {
@@ -164,9 +169,10 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && paymentMatch) {
     try {
       if (pool) {
+        await expireStalePayments();
         const local = await pool.query(`SELECT status,amount::text,currency FROM believe_payments WHERE deposit_id=$1`, [paymentMatch[1]]);
         if (!local.rows[0]) return sendJson(res, 404, { error: "Paiement introuvable" }, corsOrigin);
-        if (["CONFIRMED", "FAILED"].includes(local.rows[0].status)) return sendJson(res, 200, { depositId: paymentMatch[1], ...local.rows[0] }, corsOrigin);
+        if (["CONFIRMED", "FAILED", "CANCELLED"].includes(local.rows[0].status)) return sendJson(res, 200, { depositId: paymentMatch[1], ...local.rows[0] }, corsOrigin);
       }
       const result = await pawaPay(`/deposits/${paymentMatch[1]}`, { method: "GET" });
       await saveRemoteStatus(paymentMatch[1], result?.data);
@@ -210,6 +216,7 @@ const server = http.createServer(async (req, res) => {
     const provided = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
     if (!BELIEVE_ADMIN_KEY || provided !== BELIEVE_ADMIN_KEY) return sendJson(res, 401, { error: "Accès refusé" }, corsOrigin);
     if (!pool) return sendJson(res, 503, { error: "Base de données non configurée" }, corsOrigin);
+    await expireStalePayments();
     const result = await pool.query(`SELECT deposit_id AS "depositId",amount::text,currency,status,phone,appointment,provider_transaction_id AS "providerTransactionId",failure_reason AS "failureReason",created_at AS "createdAt",updated_at AS "updatedAt",completed_at AS "completedAt" FROM believe_payments ORDER BY created_at DESC LIMIT 500`);
     return sendJson(res, 200, { payments: result.rows }, corsOrigin);
   }
