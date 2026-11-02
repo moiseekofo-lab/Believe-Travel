@@ -150,6 +150,17 @@ const server = http.createServer(async (req, res) => {
       if (!whatsappPhone || !paymentPhone || required.some(value => !String(value || "").trim())) {
         return sendJson(res, 400, { error: "Informations de rendez-vous invalides." }, corsOrigin);
       }
+      const allowedTimes = new Set(["09:00", "10:00", "11:00", "13:00", "14:00", "15:00"]);
+      const firstAvailable = new Date("2026-11-16T00:00:00Z");
+      const lastAvailable = new Date("2027-02-16T00:00:00Z");
+      const chosenDate = new Date(`${body.date}T00:00:00Z`);
+      const weekdayRotation = [0, 3, 1, 2, 4];
+      const days = Math.round((chosenDate - firstAvailable) / 86400000);
+      const week = Math.floor(days / 7);
+      const availableDate = Number.isFinite(chosenDate.getTime()) && chosenDate >= firstAvailable && chosenDate <= lastAvailable && (chosenDate.getTime() === lastAvailable.getTime() || days === week * 7 + weekdayRotation[week % weekdayRotation.length]);
+      if (!availableDate || !allowedTimes.has(String(body.heure))) {
+        return sendJson(res, 400, { error: "La date ou l’heure choisie n’est pas disponible." }, corsOrigin);
+      }
 
       const depositId = randomUUID();
       const appointment = {

@@ -73,15 +73,16 @@
 
       <div class="section-title"><span class="number">2</span>Choisissez un créneau</div>
       <div class="two">
-        <div class="field"><label for="date">Date souhaitée *</label><input id="date" name="date" type="date" required></div>
+        <div class="field"><label for="date">Date souhaitée *</label><input id="date" name="date" type="date" required><small>Un seul jour disponible par semaine, du lundi au vendredi.</small></div>
         <div class="field"><label for="mode">Type de rendez-vous *</label><select id="mode" name="mode" required><option value="">Choisir</option><option>Appel WhatsApp</option><option>Visioconférence</option><option>En agence</option></select></div>
       </div>
       <div class="field"><label>Heure souhaitée *</label><div class="slots">
         <label class="slot"><input type="radio" name="heure" value="09:00" required><span>09:00</span></label>
+        <label class="slot"><input type="radio" name="heure" value="10:00"><span>10:00</span></label>
         <label class="slot"><input type="radio" name="heure" value="11:00"><span>11:00</span></label>
+        <label class="slot"><input type="radio" name="heure" value="13:00"><span>13:00</span></label>
         <label class="slot"><input type="radio" name="heure" value="14:00"><span>14:00</span></label>
-        <label class="slot"><input type="radio" name="heure" value="16:00"><span>16:00</span></label>
-        <label class="slot"><input type="radio" name="heure" value="17:30"><span>17:30</span></label>
+        <label class="slot"><input type="radio" name="heure" value="15:00"><span>15:00</span></label>
       </div></div>
 
       <div class="section-title"><span class="number">3</span>Vos coordonnées</div>
@@ -100,11 +101,29 @@
   <script>
     const form=document.getElementById('appointment-form');
     const date=document.getElementById('date');
-    const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); date.min=now.toISOString().split('T')[0];
+    const firstAvailable='2026-11-16';
+    const lastAvailable='2027-02-16';
+    const weekdayRotation=[0,3,1,2,4]; // lundi, jeudi, mardi, mercredi, vendredi
+    date.min=firstAvailable;date.max=lastAvailable;
+    function isAvailableDate(value){
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+      const start=new Date(firstAvailable+'T00:00:00Z');
+      const chosen=new Date(value+'T00:00:00Z');
+      const end=new Date(lastAvailable+'T00:00:00Z');
+      if(chosen<start||chosen>end)return false;
+      if(value===lastAvailable)return true;
+      const days=Math.round((chosen-start)/86400000);
+      const week=Math.floor(days/7);
+      return days===week*7+weekdayRotation[week%weekdayRotation.length];
+    }
+    date.addEventListener('input',()=>{
+      date.setCustomValidity(!date.value||isAvailableDate(date.value)?'':'Cette date n’est pas disponible. Choisissez le jour disponible de la semaine.');
+    });
     const API_BASE='https://believe-travel-payments.onrender.com';
     form.addEventListener('submit',async event=>{
       event.preventDefault();
       const error=document.getElementById('error');
+      date.setCustomValidity(isAvailableDate(date.value)?'':'Cette date n’est pas disponible. Choisissez le jour disponible de la semaine.');
       if(!form.checkValidity()){error.style.display='block';form.reportValidity();return}
       error.style.display='none';
       const data=new FormData(form);
