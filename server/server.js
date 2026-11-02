@@ -34,6 +34,21 @@ async function ensureDatabase() {
       completed_at TIMESTAMPTZ
     );
     CREATE INDEX IF NOT EXISTS believe_payments_created_idx ON believe_payments(created_at DESC);
+    CREATE TABLE IF NOT EXISTS believe_payouts (
+      payout_id UUID PRIMARY KEY,
+      amount NUMERIC(18,2) NOT NULL,
+      currency TEXT NOT NULL DEFAULT 'CDF',
+      provider TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'PROCESSING',
+      provider_transaction_id TEXT,
+      failure_reason TEXT,
+      pawa_payload JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      completed_at TIMESTAMPTZ
+    );
+    CREATE INDEX IF NOT EXISTS believe_payouts_created_idx ON believe_payouts(created_at DESC);
   `);
 }
 
@@ -80,6 +95,20 @@ function normalizePhone(value) {
   if (digits.startsWith("243") && digits.length >= 12 && digits.length <= 13) return digits;
   if (digits.startsWith("0") && digits.length === 10) return `243${digits.slice(1)}`;
   return "";
+}
+
+function payoutProvider(value) {
+  return ({ "M-Pesa": "VODACOM_MPESA_COD", "Airtel Money": "AIRTEL_COD", "Orange Money": "ORANGE_COD" })[String(value || "").trim()] || "";
+}
+
+function adminAuthorized(req) {
+  const provided = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+  return Boolean(BELIEVE_ADMIN_KEY) && provided === BELIEVE_ADMIN_KEY;
+}
+
+async function believeBalance(client = pool) {
+  const result = await client.query(`SELECT COALESCE((SELECT SUM(amount) FROM believe_payments WHERE status='CONFIRMED'),0)-COALESCE((SELECT SUM(amount) FROM believe_payouts WHERE status IN ('PROCESSING','ENQUEUED','COMPLETED')),0) AS balance`);
+  return Math.max(0, Number(result.rows[0]?.balance || 0));
 }
 
 async function pawaPay(path, options = {}) {
@@ -193,6 +222,16 @@ const server = http.createServer(async (req, res) => {
       const callback = await readJson(req);
       const transactionId = callback.depositId || callback.payoutId || callback.refundId || callback.remittanceId;
       if (!transactionId) return sendJson(res, 400, { error: "Identifiant de transaction manquant" }, corsOrigin);
+      const believePayout = callback.payoutId && pool ? await pool.query(`SELECT payout_id FROM believe_payouts WHERE payout_id=$1`, [callback.payoutId]) : { rows: [] };
+      if (believePayout.rows[0]) {
+        const verified = await pawaPay(`/payouts/${callback.payoutId}`, { method: "GET" });
+        const data = verified?.data;
+        const local = await pool.query(`SELECT amount::text,currency FROM believe_payouts WHERE payout_id=$1`, [callback.payoutId]);
+        if (Number(data?.amount) !== Number(local.rows[0]?.amount) || data?.currency !== local.rows[0]?.currency) return sendJson(res, 400, { error: "Montant ou devise incorrect" }, corsOrigin);
+        const status = data?.status === "COMPLETED" ? "COMPLETED" : data?.status === "FAILED" ? "FAILED" : String(data?.status || "PROCESSING").toUpperCase();
+        await pool.query(`UPDATE believe_payouts SET status=$2,provider_transaction_id=$3,failure_reason=$4,pawa_payload=$5,updated_at=NOW(),completed_at=CASE WHEN $2='COMPLETED' THEN COALESCE(completed_at,NOW()) ELSE completed_at END WHERE payout_id=$1`, [callback.payoutId, status, data?.providerTransactionId || null, data?.failureReason?.failureMessage || null, data]);
+        return sendJson(res, 200, { received: true, platform: "BELIEVE_TRAVEL", type: "PAYOUT" }, corsOrigin);
+      }
       const believe = callback.depositId && pool ? await pool.query(`SELECT deposit_id FROM believe_payments WHERE deposit_id=$1`, [callback.depositId]) : { rows: [] };
       if (believe.rows[0]) {
         const verified = await pawaPay(`/deposits/${callback.depositId}`, { method: "GET" });
@@ -213,12 +252,50 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/api/admin/payments") {
-    const provided = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
-    if (!BELIEVE_ADMIN_KEY || provided !== BELIEVE_ADMIN_KEY) return sendJson(res, 401, { error: "Accès refusé" }, corsOrigin);
+    if (!adminAuthorized(req)) return sendJson(res, 401, { error: "Accès refusé" }, corsOrigin);
     if (!pool) return sendJson(res, 503, { error: "Base de données non configurée" }, corsOrigin);
     await expireStalePayments();
     const result = await pool.query(`SELECT deposit_id AS "depositId",amount::text,currency,status,phone,appointment,provider_transaction_id AS "providerTransactionId",failure_reason AS "failureReason",created_at AS "createdAt",updated_at AS "updatedAt",completed_at AS "completedAt" FROM believe_payments ORDER BY created_at DESC LIMIT 500`);
-    return sendJson(res, 200, { payments: result.rows }, corsOrigin);
+    const payouts = await pool.query(`SELECT payout_id AS "payoutId",amount::text,currency,provider,phone,status,provider_transaction_id AS "providerTransactionId",failure_reason AS "failureReason",created_at AS "createdAt",updated_at AS "updatedAt",completed_at AS "completedAt" FROM believe_payouts ORDER BY created_at DESC LIMIT 100`);
+    return sendJson(res, 200, { payments: result.rows, payouts: payouts.rows, availableBalance: await believeBalance() }, corsOrigin);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/payouts") {
+    if (!adminAuthorized(req)) return sendJson(res, 401, { error: "Accès refusé" }, corsOrigin);
+    if (!pool) return sendJson(res, 503, { error: "Base de données non configurée" }, corsOrigin);
+    const body = await readJson(req);
+    const amount = Number(body.amount);
+    const provider = String(body.provider || "").trim();
+    const correspondent = payoutProvider(provider);
+    const phone = normalizePhone(body.phone);
+    if (!Number.isInteger(amount) || amount <= 0) return sendJson(res, 400, { error: "Montant de retrait invalide." }, corsOrigin);
+    if (!correspondent || !phone) return sendJson(res, 400, { error: "Compte Mobile Money invalide." }, corsOrigin);
+    const payoutId = randomUUID();
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext('BELIEVE_TRAVEL_PAYOUTS'))`);
+      const balance = await believeBalance(client);
+      if (amount > balance) throw Object.assign(new Error("Le montant dépasse le solde Believe Travel disponible."), { status: 400 });
+      await client.query(`INSERT INTO believe_payouts(payout_id,amount,currency,provider,phone,status) VALUES($1,$2,'CDF',$3,$4,'PROCESSING')`, [payoutId, amount, provider, phone]);
+      await client.query("COMMIT");
+      const payload = { payoutId, amount: String(amount), currency: "CDF", recipient: { type: "MMO", accountDetails: { provider: correspondent, phoneNumber: phone } }, clientReferenceId: `BELIEVE-${payoutId.slice(0, 8)}`, customerMessage: "Believe Travel", metadata: [{ platform: "BELIEVE_TRAVEL" }, { type: "ADMIN_WITHDRAWAL" }] };
+      const payout = await pawaPay("/payouts", { method: "POST", body: JSON.stringify(payload) });
+      const accepted = ["ACCEPTED", "DUPLICATE_IGNORED"].includes(String(payout.status || "").toUpperCase());
+      if (!accepted) {
+        const reason = payout?.failureReason?.failureMessage || "Retrait refusé par pawaPay.";
+        await pool.query(`UPDATE believe_payouts SET status='FAILED',failure_reason=$2,pawa_payload=$3,updated_at=NOW() WHERE payout_id=$1`, [payoutId, reason, payout]);
+        return sendJson(res, 422, { error: reason }, corsOrigin);
+      }
+      await pool.query(`UPDATE believe_payouts SET status='PROCESSING',pawa_payload=$2,updated_at=NOW() WHERE payout_id=$1`, [payoutId, payout]);
+      return sendJson(res, 202, { ok: true, payoutId, status: "PROCESSING", availableBalance: balance - amount }, corsOrigin);
+    } catch (error) {
+      try { await client.query("ROLLBACK"); } catch {}
+      if (error.status !== 400) await pool.query(`UPDATE believe_payouts SET status='FAILED',failure_reason=$2,updated_at=NOW() WHERE payout_id=$1`, [payoutId, error.message]).catch(() => {});
+      return sendJson(res, error.status || 502, { error: error.message || "Retrait impossible." }, corsOrigin);
+    } finally {
+      client.release();
+    }
   }
 
   return sendJson(res, 404, { error: "Route introuvable" }, corsOrigin);
