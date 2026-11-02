@@ -54,7 +54,7 @@ function sendJson(res, status, body, origin = ALLOWED_ORIGIN) {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Vary": "Origin",
     "Cache-Control": "no-store"
   });
