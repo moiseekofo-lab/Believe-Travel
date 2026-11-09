@@ -104,7 +104,8 @@
     footer p {font-size:13px;max-width:430px;margin-top:8px}
     footer a:hover {color:var(--lime)}
     .copyright {margin-top:30px;border-top:1px solid #344365;padding-top:18px;font-size:12px;color:#a8badb}
-    .float-wa {position:fixed;right:22px;bottom:22px;background:#20b35f;color:white;border-radius:50px;padding:13px 20px;box-shadow:0 9px 24px rgba(0,0,0,.22);font-weight:800;z-index:25}
+    .float-wa {position:fixed;right:22px;bottom:22px;display:flex;align-items:center;gap:8px;background:#20b35f;color:white;border-radius:50px;padding:13px 20px;box-shadow:0 9px 24px rgba(0,0,0,.22);font-weight:800;z-index:25}
+    .float-wa svg {width:18px;height:18px;flex:0 0 18px;display:block}
     .float-wa:hover {background:#178c49}
     @media(max-width:960px){nav {gap:11px}nav a{font-size:13px}.hero-grid {gap:25px}.steps{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:760px){.topline .wrap {justify-content:center;text-align:center} .menu-toggle {display:block}nav {display:none;position:absolute;left:0;right:0;top:100%;background:white;padding:20px;flex-direction:column;align-items:stretch;box-shadow:0 16px 23px rgba(0,0,0,.1)}nav.open {display:flex}nav a {padding:5px 0}.hero-grid{grid-template-columns:1fr;padding:72px 0}.hero-card {max-width:420px;transform:none}.cards,.feature,.contact-grid {grid-template-columns:1fr}.feature {gap:25px}section{padding:63px 0}.wrap{width:min(100% - 28px,1160px)}.two {grid-template-columns:1fr}.float-wa{right:12px;bottom:12px;padding:11px 15px;font-size:13px}.brand{font-size:19px}}
@@ -138,7 +139,7 @@
     </div></section>
   </main>
   <footer><div class="wrap"><div class="foot-grid"><div><strong>Believe Travel ✈️</strong><p>Orientation et accompagnement pour les études au Portugal et les démarches de mobilité internationale.</p></div><div><p><a href="#formations">Formations</a> · <a href="#bourses">Bourses</a> · <a href="#demarches">Démarches</a> · <a href="#contact">Contact</a></p><p>contact@believetravel.lat<br>+243 858 909 982</p></div></div><div class="copyright">© <span id="year">2026</span> Believe Travel. Tous droits réservés. • Mon voyage de rêve !</div></div></footer>
-  <a class="float-wa" href="https://wa.me/243858909982" target="_blank" rel="noopener" aria-label="Contacter Believe Travel sur WhatsApp">💬 WhatsApp</a>
+  <a class="float-wa" href="https://wa.me/243858909982" target="_blank" rel="noopener" aria-label="Contacter Believe Travel sur WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.7a8.5 8.5 0 0 1-12.6 7.5L3.5 20.5l1.3-4.3A8.5 8.5 0 1 1 20.5 11.7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.1 7.8c.2-.5.5-.5.8-.5h.5c.2 0 .4.1.5.4l.8 1.9c.1.3 0 .5-.2.7l-.6.7c-.2.2-.1.4 0 .6.7 1.2 1.7 2.1 2.9 2.8.2.1.4.1.6-.1l.8-1c.2-.2.4-.3.7-.2l1.9.9c.3.1.4.3.4.6 0 .6-.3 1.5-.8 1.9-.5.4-1.2.7-2 .6-1.1-.2-2.7-.8-4.5-2.3-1.5-1.3-2.6-2.8-3-4-.4-1.1 0-2.3.4-2.8.2-.1.5-.2.8-.2Z" fill="currentColor"/></svg><span>WhatsApp</span></a>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
     const toggle = document.getElementById('menu-toggle');
