@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#0b173e">
   <meta name="description" content="Believe Travel accompagne les projets d'études au Portugal : orientation, candidature universitaire, bourses et préparation de dossier de visa.">
   <title>Believe Travel | Étudier au Portugal</title>
+  <link rel="icon" type="image/png" href="assets/believe-travel-logo-cutout.png?v=3">
+  <link rel="apple-touch-icon" href="assets/believe-travel-logo-cutout.png?v=3">
   <style>
     :root { --navy:#0b173e; --blue:#2174f5; --lime:#c9f019; --ink:#192342; --muted:#65718b; --border:#e4eaf4; --bg:#f7f9fe; --white:#fff; }
     * {box-sizing:border-box}
@@ -20,7 +22,8 @@
     header {background:white; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20}
     .navbar {display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:78px}
     .brand {display:flex; align-items:center; gap:12px; font-weight:850; font-size:22px; color:var(--navy); letter-spacing:-.7px}
-    .brand-mark {background:var(--lime); border-radius:15px; width:44px; height:44px; display:grid; place-items:center; font-size:24px; box-shadow:inset 0 -4px 0 rgba(0,0,0,.06)}
+    .brand-mark {background:var(--lime); border-radius:15px; width:52px; height:52px; display:grid; place-items:center; overflow:hidden; box-shadow:inset 0 -4px 0 rgba(0,0,0,.06)}
+    .brand-mark img {display:block;width:58px;height:58px;object-fit:contain}
     .brand small {display:block; color:var(--muted); font-size:10px; font-weight:650; letter-spacing:1.2px; line-height:1.2}
     nav {display:flex; align-items:center; gap:23px}
     nav a {font-size:14px; font-weight:650; color:#33415f}
@@ -109,7 +112,7 @@
   <div class="topline"><div class="wrap"><span>🇵🇹 Votre projet d'études au Portugal commence ici</span><span>✉️ contact@believetravel.lat</span></div></div>
   <header>
     <div class="wrap navbar">
-      <a class="brand" href="#accueil" aria-label="Believe Travel — accueil"><span class="brand-mark">✈️</span><span>Believe Travel<small>MON VOYAGE DE RÊVE</small></span></a>
+      <a class="brand" href="#accueil" aria-label="Believe Travel — accueil"><span class="brand-mark"><img src="assets/believe-travel-logo-cutout.png" alt="Logo Believe Travel"></span><span>Believe Travel<small>MON VOYAGE DE RÊVE</small></span></a>
       <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
       <nav id="menu" aria-label="Navigation principale"><a href="#accueil">Accueil</a><a href="#formations">Formations</a><a href="#bourses">Bourses</a><a href="#demarches">Démarches</a><a href="#contact">Contact</a><a class="btn" href="rendez-vous/">Prendre rendez-vous</a></nav>
     </div>
