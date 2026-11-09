@@ -1,186 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="theme-color" content="#0b173e">
-  <meta name="description" content="Believe Travel accompagne les projets d'études au Portugal : orientation, candidature universitaire, bourses et préparation de dossier de visa.">
-  <title>Believe Travel | Étudier au Portugal</title>
-  <link rel="icon" type="image/png" href="assets/believe-travel-logo-cutout.png?v=3">
-  <link rel="apple-touch-icon" href="assets/believe-travel-logo-cutout.png?v=3">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+  <meta name="theme-color" content="#2878f5">
+  <meta name="description" content="Believe Travel vous accompagne dans votre projet d'études au Portugal.">
+  <title>Believe Travel | Portugal 2027–2028</title>
+  <link rel="icon" href="assets/believe-travel-logo-cutout.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Work+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --navy:#0b173e; --blue:#2174f5; --lime:#c9f019; --ink:#192342; --muted:#65718b; --border:#e4eaf4; --bg:#f7f9fe; --white:#fff; }
-    * {box-sizing:border-box}
-    html {scroll-behavior:smooth}
-    body {margin:0; color:var(--ink); background:var(--white); font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.6}
-    h1,h2,h3,h4,.brand {font-family:Manrope,system-ui,sans-serif}
-    button,.btn,.float-wa {font-family:"Work Sans",system-ui,sans-serif}
-    a {color:inherit; text-decoration:none}
-    input,select,textarea {font:inherit}
-    button {cursor:pointer}
-    .wrap {width:min(1160px,calc(100% - 40px)); margin:auto}
-    .topline {background:var(--navy); color:#e8f0ff; font-size:13px; padding:8px 0}
-    .topline .wrap {display:flex; justify-content:space-between; gap:15px; flex-wrap:wrap}
-    header {background:white; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20}
-    .navbar {display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:78px}
-    .brand {display:flex; align-items:center; gap:12px; font-weight:850; font-size:22px; color:var(--navy); letter-spacing:-.7px}
-    .brand-mark {background:#fff; border:1px solid #e4eaf4; border-radius:15px; width:54px; height:54px; padding:5px; display:grid; place-items:center; overflow:hidden; box-shadow:0 4px 12px rgba(11,23,62,.08)}
-    .brand-mark img {display:block;width:100%;height:100%;object-fit:contain}
-    .brand small {display:block; color:var(--muted); font-size:10px; font-weight:650; letter-spacing:1.2px; line-height:1.2}
-    nav {display:flex; align-items:center; gap:23px}
-    nav a {font-size:14px; font-weight:650; color:#33415f}
-    nav a:hover,nav a:focus {color:var(--blue)}
-    .btn {display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:14px; background:var(--blue); color:white; padding:12px 20px; font-weight:750; border:2px solid transparent; box-shadow:0 6px 18px rgba(33,116,245,.16); transition:transform .2s,background .2s}
-    .btn:hover {transform:translateY(-2px);background:#105acf}
-    .btn-white {background:white;color:var(--navy);box-shadow:none}
-    .btn-white:hover {background:#e9effa}
-    .btn-outline {border:2px solid #d3ddf0; color:var(--navy); background:white;box-shadow:none}
-    .btn-outline:hover {background:#f4f7ff}
-    .info-link {display:inline-block;color:var(--blue);font-family:"Work Sans",system-ui,sans-serif;font-weight:700;text-decoration:underline;text-underline-offset:4px}
-    .menu-toggle {display:none; background:transparent; border:1px solid var(--border); border-radius:9px; padding:8px 12px; font-size:23px}
-    .hero {background:linear-gradient(90deg,rgba(4,12,30,.88) 0%,rgba(4,12,30,.68) 48%,rgba(4,12,30,.22) 100%),url("assets/portugal-2027-banner.jpg") center/cover no-repeat;color:white;overflow:hidden;position:relative}
-    .hero::after {display:none}
-    .hero-grid {display:grid;grid-template-columns:minmax(0,620px) 1fr;align-items:center;gap:60px;padding:100px 0 110px;position:relative;z-index:1}
-    .pill {display:block;padding:0;background:none;color:#fff;font-weight:750;letter-spacing:.2px;font-size:13px;border:0}
-    h1,h2,h3,p {margin-top:0}
-    h1 {font-size:clamp(37px,5vw,66px);line-height:1.09;letter-spacing:-2px;margin:22px 0}
-    h1 span {color:var(--lime)}
-    .hero p {max-width:610px;color:#dce5fa;font-size:17px}
-    .actions {display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-    .trust {display:flex;gap:24px;flex-wrap:wrap;margin-top:34px;font-size:13px;color:#dbe7ff}
-    .trust b {color:white}
-    .hero-card {display:none}
-    .hero-card .photo {height:175px;border-radius:18px;background:linear-gradient(120deg,#bfea38,#91d6ec);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-    .photo .flag {font-size:90px;filter:drop-shadow(0 8px 9px rgba(0,0,0,.13))}
-    .photo::before,.photo::after {content:"";position:absolute;width:200px;height:200px;border:2px solid rgba(255,255,255,.45);border-radius:50%}
-    .photo::before {left:-100px;top:-45px}.photo::after {right:-65px;bottom:-110px}
-    .mini-tag {display:inline-block;background:#eef4ff;border-radius:8px;color:#1c5ac4;font-size:12px;font-weight:800;padding:5px 9px;margin-top:19px}
-    .hero-card h3 {font-size:24px;line-height:1.25;margin:10px 0}
-    .hero-card p {color:var(--muted);font-size:14px;margin:0}
-    .notice {background:#f1f8da;border-bottom:1px solid #dceca7;padding:15px 0;color:#34441d;font-size:14px}
-    section {padding:86px 0;scroll-margin-top:90px}
-    section.alt {background:var(--bg)}
-    .eyebrow {text-transform:uppercase;font-weight:850;font-size:12px;letter-spacing:2px;color:var(--blue);margin-bottom:8px}
-    .heading {max-width:760px;margin:0 0 36px}
-    h2 {font-size:clamp(29px,3.4vw,42px);letter-spacing:-1.5px;line-height:1.16;color:var(--navy);margin-bottom:14px}
-    .heading p {color:var(--muted);font-size:16px}
-    .cards {display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-    .card {background:white;border:1px solid var(--border);border-radius:20px;padding:28px;box-shadow:0 8px 25px rgba(15,30,65,.03)}
-    .card .emoji {display:grid;place-items:center;width:55px;height:55px;background:#eaf2ff;border-radius:16px;font-size:26px;margin-bottom:20px}
-    .card h3 {color:var(--navy);font-size:19px;line-height:1.3}
-    .card p {color:var(--muted);font-size:14px;margin-bottom:0}
-    .feature {display:grid;grid-template-columns:1fr 1fr;gap:55px;align-items:center}
-    .list-ticks {padding:0;list-style:none;display:grid;gap:13px;margin:20px 0 30px}
-    .list-ticks li {position:relative;padding-left:25px}
-    .list-ticks li::before {content:"✓";position:absolute;left:0;top:0;background:transparent;color:#6fae00;font-weight:900;width:auto;text-align:left}
-    .feature-box {background:linear-gradient(90deg,rgba(7,17,45,.88),rgba(7,17,45,.68)),url("assets/bourse-portugal-2027.jpg") center/cover no-repeat;color:white;padding:35px;border-radius:25px;position:relative}
-    .feature-box h3 {font-size:27px;line-height:1.25}
-    .feature-box p {color:#d2e0fa;font-size:15px}
-    .feature-box .highlight {background:var(--lime);color:#243500;padding:10px 14px;border-radius:11px;display:inline-block;font-weight:850;font-size:13px;margin:0 0 18px}
-    .feature-box .line {height:1px;background:rgba(255,255,255,.18);margin:22px 0}
-    .steps {display:grid;grid-template-columns:repeat(4,1fr);gap:17px}
-    .step {padding:26px 20px;background:white;border:1px solid var(--border);border-radius:17px}
-    .step .number {width:39px;height:39px;background:var(--navy);color:white;display:grid;place-items:center;border-radius:12px;font-weight:850;margin-bottom:18px}
-    .step h3 {font-size:17px;color:var(--navy)}
-    .step p {font-size:13px;color:var(--muted);margin:0}
-    .contact-grid {display:grid;grid-template-columns:.85fr 1.15fr;gap:45px;align-items:start}
-    .contact-details {padding:25px 0}
-    .contact-details p {color:var(--muted)}
-    .contact-link {display:flex;gap:12px;align-items:center;margin:17px 0;font-weight:700;overflow-wrap:anywhere}
-    .contact-link .ico {border-radius:11px;background:#eaf2ff;width:43px;height:43px;display:grid;place-items:center;flex-shrink:0}
-    form {border:1px solid var(--border);background:white;border-radius:23px;padding:30px;box-shadow:0 14px 36px rgba(15,30,65,.05)}
-    form h3 {font-size:23px;color:var(--navy);margin-bottom:4px}
-    form>p {font-size:13px;color:var(--muted);margin-bottom:22px}
-    label {display:block;font-size:13px;font-weight:750;color:#364566;margin-bottom:7px}
-    input,textarea,select {width:100%;padding:12px 13px;border:1px solid #cfd9eb;border-radius:11px;color:var(--ink);background:white;outline:none}
-    input:focus,textarea:focus,select:focus {border-color:var(--blue);box-shadow:0 0 0 3px rgba(33,116,245,.13)}
-    textarea {min-height:95px;resize:vertical}
-    .field {margin-bottom:16px}
-    .two {display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .hint {font-size:12px;color:var(--muted);margin-top:12px}
-    footer {background:var(--navy);color:#d8e5ff;padding:42px 0 23px}
-    .foot-grid {display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;align-items:start}
-    footer strong {color:white;font-size:22px}
-    footer p {font-size:13px;max-width:430px;margin-top:8px}
-    footer a:hover {color:var(--lime)}
-    .copyright {margin-top:30px;border-top:1px solid #344365;padding-top:18px;font-size:12px;color:#a8badb}
-    .float-wa {position:fixed;right:22px;bottom:22px;display:flex;align-items:center;gap:8px;background:#20b35f;color:white;border-radius:50px;padding:13px 20px;box-shadow:0 9px 24px rgba(0,0,0,.22);font-weight:800;z-index:25}
-    .float-wa svg {width:18px;height:18px;flex:0 0 18px;display:block}
-    .float-wa:hover {background:#178c49}
-    @media(max-width:960px){nav {gap:11px}nav a{font-size:13px}.hero-grid {gap:25px}.steps{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:760px){.topline .wrap {justify-content:center;text-align:center} .menu-toggle {display:block}nav {display:none;position:absolute;left:0;right:0;top:100%;background:white;padding:20px;flex-direction:column;align-items:stretch;box-shadow:0 16px 23px rgba(0,0,0,.1)}nav.open {display:flex}nav a {padding:5px 0}.hero{background-position:center}.hero::before{content:"";position:absolute;inset:0;background:rgba(4,12,30,.25)}.hero-grid{grid-template-columns:1fr;padding:72px 0}.hero-card {display:none}.cards,.feature,.contact-grid {grid-template-columns:1fr}.feature {gap:25px}section{padding:63px 0}.wrap{width:min(100% - 28px,1160px)}.two {grid-template-columns:1fr}.float-wa{right:12px;bottom:12px;padding:11px 15px;font-size:13px}.brand{font-size:19px}}
-    @media(max-width:430px){.steps{grid-template-columns:1fr}.hero-card{padding:18px}form{padding:20px}.trust{gap:12px}}
-
-    /* Refonte inspirée du modèle éditorial fourni */
-    :root{--blue:#2878f5;--lime:#c7f000;--mint:#e3f8e7;--orange:#ff6b1a;--ink:#111318}
-    body{color:var(--ink);background:#fff}
-    header{border:0;box-shadow:0 1px 0 #dfe7ef}
-    .navbar{min-height:82px}.brand-mark{border:0;box-shadow:none;background:transparent}.btn{border-radius:10px;box-shadow:none}.menu-toggle{background:#f2f5fa;border:0}
-    .hero{background:var(--blue);color:#fff;padding:54px 0}
-    .hero-grid{grid-template-columns:.86fr 1.14fr;gap:58px;padding:0;min-height:440px}
-    .hero-grid::before{content:"";grid-column:1;grid-row:1;background:url("assets/portugal-2027-banner.jpg") center/cover;border:15px solid var(--lime);border-radius:30px;min-height:430px}
-    .hero-grid>div:first-child{grid-column:2;grid-row:1;align-self:center}
-    .hero::after,.hero::before{display:none!important}.pill{font-size:13px;text-transform:uppercase;letter-spacing:1px}
-    h1{font-size:clamp(50px,7vw,82px);line-height:.98;letter-spacing:-3px;color:#111;margin:28px 0 20px}h1 span{color:#111}
-    .hero p{color:#fff;font-size:18px}.hero .actions .btn:first-child{background:var(--lime)!important;border-radius:10px}.btn-white{border-radius:10px}.trust{font-weight:700;color:#fff}
-    .notice{background:#050505;color:#fff;border:0;padding:16px 0}.notice strong{color:var(--lime)}
-    section{padding:84px 0}.eyebrow{color:var(--orange)}h2{color:#111;font-size:clamp(32px,4.2vw,52px)}
-    #formations{background:var(--mint)}#formations .heading{text-align:center;margin:0 auto 38px}#formations .cards{gap:22px}
-    #formations .card{border:0;border-radius:16px;box-shadow:none;padding:14px 14px 26px;min-height:300px}.card .emoji{background:var(--blue);color:#fff;border-radius:12px}.card h3{font-size:21px;color:#111}.card p{color:#596472}
-    #bourses{background:var(--blue)!important;color:#fff}.feature{gap:55px}.feature>div:first-child{padding:28px 0}.feature h2{color:#111}.feature>div:first-child>p:not(.eyebrow),.feature .list-ticks{color:#eef4ff}.list-ticks li::before{color:var(--lime)}
-    .feature-box{background:linear-gradient(#ffffffed,#ffffffed),url("assets/bourse-portugal-2027.jpg") center/cover;color:#111;border-radius:18px;padding:42px}.feature-box h3{color:#111}.feature-box p{color:#4f5a69}.feature-box .highlight{background:var(--lime);border-radius:9px}.feature-box .line{background:#dfe5ed}.feature-box strong{color:#111!important}.info-link{display:inline-flex;background:#fff;color:#111;text-decoration:none;padding:13px 18px;border-radius:10px}
-    #demarches{background:var(--mint)}#demarches .heading{text-align:center;margin:0 auto 38px}.step{border:0;border-radius:16px}.step .number{background:var(--lime);color:#111;border-radius:12px}
-    #contact{background:#050505!important;color:#fff}.contact-details h2{color:#fff}.contact-details p{color:#c9d0db}.contact-link .ico{background:var(--lime);color:#111;border-radius:50%}form{border:0;border-radius:18px;box-shadow:none;color:#111}
-    footer{background:#050505;border-top:1px solid #30343a}.float-wa{width:54px;height:54px;padding:0;display:grid;place-items:center;border-radius:50%}.float-wa span{display:none}.float-wa svg{width:25px;height:25px}
-    @media(max-width:760px){.hero-grid{grid-template-columns:1fr;min-height:0}.hero-grid::before{grid-column:1;grid-row:2;min-height:285px;border-width:10px}.hero-grid>div:first-child{grid-column:1;grid-row:1}.hero h1{font-size:48px}.hero{padding:38px 0}.cards{grid-template-columns:1fr}.feature-box{padding:25px}}
+    :root{--blue:#2878f5;--mint:#e2f8e6;--lime:#c9f000;--orange:#ff6b17;--black:#090909;--ink:#111318;--muted:#626b78;--white:#fff}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,Arial,sans-serif;line-height:1.5;background:#fff}h1,h2,h3{font-family:Manrope,Arial,sans-serif;margin-top:0}a{color:inherit;text-decoration:none}img{display:block;width:100%}.wrap{width:min(1140px,calc(100% - 40px));margin:auto}
+    header{height:78px;background:#fff;display:flex;align-items:center;position:sticky;top:0;z-index:20;border-bottom:1px solid #e7ebf0}.nav{display:flex;align-items:center;justify-content:space-between;gap:28px}.brand{display:flex;align-items:center;gap:10px;font:800 20px Manrope}.brand img{width:48px;height:48px;object-fit:contain}.brand small{display:block;font:700 9px Inter;letter-spacing:1.4px;color:#687386}.links{display:flex;align-items:center;gap:24px;font-size:14px;font-weight:700}.links a:hover{color:var(--blue)}.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--lime);color:#162000;padding:13px 20px;border-radius:9px;font:800 14px "Work Sans";transition:.2s}.btn:hover{transform:translateY(-2px)}.btn.blue{background:var(--blue);color:#fff}.btn.orange{background:var(--orange);color:#fff}.btn.white{background:#fff;color:#111}.menu{display:none;border:0;border-radius:10px;background:#f0f3f8;padding:8px 11px;font-size:23px}
+    .hero{background:var(--blue);padding:44px 0;color:#fff}.hero-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:58px;align-items:center}.hero-image{height:430px;border:15px solid var(--lime);border-radius:28px;overflow:hidden}.hero-image img{height:100%;object-fit:cover}.hero-copy .mini{font-weight:800;font-size:13px}.hero h1{font-size:clamp(52px,7vw,84px);line-height:.96;letter-spacing:-3px;color:#111;margin:50px 0 12px}.hero p{font-size:18px;margin:0 0 24px}.hero .btn{background:#fff;color:#111}
+    section{padding:76px 0}.mint{background:var(--mint)}.blue{background:var(--blue);color:#fff}.black{background:var(--black);color:#fff}.title{text-align:center;font-size:clamp(32px,4vw,48px);line-height:1.05;margin-bottom:34px}.eyebrow{text-transform:uppercase;letter-spacing:2px;color:var(--orange);font-weight:800;font-size:12px;margin-bottom:8px}
+    .directory{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.card{background:#fff;border-radius:15px;padding:12px 12px 23px;display:flex;flex-direction:column;min-height:350px}.card img{height:175px;object-fit:cover;border-radius:10px}.card h3{font-size:20px;margin:15px 8px 4px}.card p{color:var(--muted);font-size:13px;margin:0 8px}.card a{color:var(--orange);font:800 11px "Work Sans";text-transform:uppercase;margin:auto 8px 0;padding-top:22px}
+    .article{display:grid;grid-template-columns:.72fr 1.28fr;gap:56px;align-items:center}.article+.article{margin-top:70px}.article.reverse{grid-template-columns:1.28fr .72fr}.article.reverse .photo{order:2}.photo{height:470px;border-radius:25px;overflow:hidden}.photo img{height:100%;object-fit:cover}.article h2{color:#101318;font-size:clamp(34px,4vw,50px);line-height:1.05}.article p{color:#e9f1ff;font-size:15px}.article .big{font:800 clamp(24px,3vw,36px)/1.15 Manrope;color:#111;margin-top:24px}
+    .program{display:grid;grid-template-columns:.75fr 1.25fr;gap:52px;align-items:stretch}.program-photo{border-radius:22px;overflow:hidden;min-height:540px}.program-photo img{height:100%;object-fit:cover}.program-box{background:#fff;border-radius:17px;padding:42px}.program-box h2{font-size:38px;line-height:1.1}.program-box p{color:var(--muted)}.checks{padding:0;list-style:none;margin:24px 0;display:grid;gap:16px}.checks li{padding-left:33px;position:relative}.checks li:before{content:"✓";position:absolute;left:0;color:#72a400;font-size:22px;font-weight:900}.warning{border-top:1px solid #dde4ec;margin-top:25px;padding-top:18px;font-size:12px}
+    .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.step{background:#fff;color:#111;border-radius:15px;padding:25px}.step b{display:grid;place-items:center;width:43px;height:43px;background:var(--lime);border-radius:11px;margin-bottom:18px}.step h3{font-size:17px;margin-bottom:7px}.step p{color:var(--muted);font-size:13px;margin:0}
+    .useful{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:900px;margin:auto}.useful a{display:grid;grid-template-columns:80px 1fr;gap:14px;align-items:center;background:#fff;border-radius:15px;padding:10px}.useful img{height:70px;object-fit:cover;border-radius:10px}.useful strong{display:block;font-family:Manrope;line-height:1.2}.useful span{color:var(--orange);font-size:10px;font-weight:800;text-transform:uppercase}
+    .banner{min-height:460px;background:linear-gradient(90deg,#000 0%,#000b 40%,#0002 75%),url("assets/rendez-vous-banner.jpg") center/cover;display:flex;align-items:center}.banner h2{font-size:clamp(40px,6vw,72px);line-height:.98;max-width:570px;margin-bottom:20px}.banner p{max-width:500px;color:#d9dee7}
+    .cta{display:flex;align-items:center;justify-content:space-between;gap:30px}.cta h2{font-size:clamp(38px,5vw,64px);line-height:.98;margin:0}.cta-actions{display:flex;gap:12px;flex-wrap:wrap}
+    footer{background:#050505;color:#fff;padding:42px 0 22px}.footer{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}.footer p{color:#aeb7c2;font-size:13px}.copy{border-top:1px solid #303338;margin-top:25px;padding-top:17px;color:#737b87;font-size:12px}.wa{position:fixed;right:18px;bottom:18px;width:55px;height:55px;border-radius:50%;background:#1fbd63;color:#fff;display:grid;place-items:center;box-shadow:0 10px 25px #0005;z-index:30}.wa svg{width:26px}
+    @media(max-width:820px){.links{display:none;position:absolute;top:78px;left:0;right:0;background:#fff;padding:20px;flex-direction:column;align-items:stretch;box-shadow:0 15px 25px #0002}.links.open{display:flex}.menu{display:block}.hero-grid,.article,.article.reverse,.program{grid-template-columns:1fr}.hero-copy{order:-1}.hero-image{height:330px}.article.reverse .photo{order:0}.directory{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.photo{height:360px}.program-photo{min-height:370px}.cta{align-items:flex-start;flex-direction:column}}
+    @media(max-width:560px){.wrap{width:min(100% - 28px,1140px)}header{height:68px}.links{top:68px}.brand{font-size:17px}.brand img{width:42px;height:42px}.hero{padding:34px 0}.hero h1{font-size:48px;margin:25px 0 12px}.hero-image{height:270px;border-width:10px}.directory,.steps,.useful{grid-template-columns:1fr}.card{min-height:325px}section{padding:58px 0}.photo{height:320px}.program-box{padding:24px}.program-box h2{font-size:31px}.banner{min-height:520px;background-position:63% center}.cta-actions{width:100%}.cta-actions .btn{width:100%}}
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap navbar">
-      <a class="brand" href="#accueil" aria-label="Believe Travel — accueil"><span class="brand-mark"><img src="assets/believe-travel-logo-cutout.png" alt="Logo Believe Travel"></span><span>Believe Travel<small>MON VOYAGE DE RÊVE</small></span></a>
-      <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
-      <nav id="menu" aria-label="Navigation principale"><a href="#accueil">Accueil</a><a href="#formations">Formations</a><a href="#bourses">Bourses</a><a href="#demarches">Démarches</a><a href="#contact">Contact</a><a class="btn" href="rendez-vous/">Prendre rendez-vous</a></nav>
-    </div>
-  </header>
+  <header><div class="wrap nav"><a class="brand" href="#accueil"><img src="assets/believe-travel-logo-cutout.png" alt="Logo Believe Travel"><span>Believe Travel<small>MON VOYAGE DE RÊVE</small></span></a><button class="menu" id="menuBtn" aria-label="Menu">☰</button><nav class="links" id="links"><a href="#accueil">Accueil</a><a href="#services">Services</a><a href="#bourses">Bourses</a><a href="#etapes">Démarches</a><a class="btn blue" href="rendez-vous/">Prendre rendez-vous</a></nav></div></header>
   <main>
-    <div class="hero" id="accueil"><div class="wrap hero-grid">
-      <div><div class="pill">Rentrée académique 2027–2028</div><h1>Étudiez au <span>Portugal</span> avec confiance.</h1><p>Believe Travel vous accompagne dans le choix d'une formation, la préparation de votre candidature et l'orientation pour les démarches de visa.</p><div class="actions"><a class="btn" style="background:var(--lime);color:#142b00;box-shadow:none" href="#inscription">Commencer mon projet ↗</a><a class="btn btn-white" href="#formations">Découvrir les formations</a></div><div class="trust"><span>✓ Orientation personnalisée</span><span>✓ Dossiers étudiés avant rendez-vous</span><span>✓ Étapes expliquées clairement</span></div></div>
-      <div class="hero-card"><div class="photo"><span class="flag" aria-hidden="true">🇵🇹</span></div><span class="mini-tag">2027 / 2028</span><h3>Votre avenir académique commence par une bonne préparation.</h3><p>Licence • Master • Doctorat • Langue portugaise</p></div>
-    </div></div>
-    <div class="notice"><div class="wrap">📢 <strong>Bourses de langue portugaise 2027 :</strong> Believe Travel reçoit les demandes de préparation des dossiers. L'ouverture officielle des candidatures doit encore être confirmée par l'organisme concerné.</div></div>
-    <section id="formations"><div class="wrap"><div class="heading"><p class="eyebrow">Nos parcours</p><h2>Une formation adaptée à vos ambitions</h2><p>Nous recherchons des possibilités de formation selon votre parcours académique, votre niveau linguistique et les conditions des établissements.</p></div><div class="cards">
-      <article class="card"><div class="emoji">🎓</div><h3>Licences</h3><p>Orientation pour les titulaires d'un diplôme de fin d'études secondaires souhaitant commencer des études supérieures au Portugal.</p></article>
-      <article class="card"><div class="emoji">📚</div><h3>Masters & MBA</h3><p>Recherche de programmes en gestion, droit, technologies et autres domaines, en fonction du diplôme précédent et de l'expérience.</p></article>
-      <article class="card"><div class="emoji">🔬</div><h3>Doctorats</h3><p>Accompagnement à la recherche de programmes doctoraux et à la préparation d'un projet de recherche.</p></article>
+    <section class="hero" id="accueil"><div class="wrap hero-grid"><div class="hero-image"><img src="assets/portugal-2027-banner.jpg" alt="Étudier au Portugal"></div><div class="hero-copy"><div class="mini">Believe Travel</div><h1>Portugal<br>2027–2028</h1><p>Votre projet d'études commence par une préparation claire et un accompagnement adapté.</p><a class="btn" href="rendez-vous/">Prendre rendez-vous →</a></div></div></section>
+    <section class="mint" id="services"><div class="wrap"><h2 class="title">Directoire</h2><div class="directory">
+      <article class="card"><img src="assets/bourse-portugal-2027.jpg" alt="Formations"><h3>Formations</h3><p>Licence, Master, MBA et Doctorat selon votre parcours.</p><a href="#programme">Découvrez →</a></article>
+      <article class="card"><img src="assets/portugal-2027-banner.jpg" alt="Bourses"><h3>Bourses 2027</h3><p>Informations et préparation de candidature pour les appels officiels.</p><a href="#bourses">Commencez maintenant →</a></article>
+      <article class="card"><img src="assets/rendez-vous-banner.jpg" alt="Rendez-vous"><h3>Rendez-vous</h3><p>Choisissez une date disponible et confirmez votre réservation.</p><a href="rendez-vous/">Réservez maintenant →</a></article>
     </div></div></section>
-    <section class="alt" id="bourses"><div class="wrap feature"><div><p class="eyebrow">Bourses & portugais</p><h2>Préparez votre candidature aux bourses 2027</h2><p>Une formation en langue et culture portugaises peut vous aider à développer vos compétences et à préparer d'autres projets d'études.</p><ul class="list-ticks"><li>Analyse préliminaire du profil du candidat.</li><li>Informations sur les programmes et les pièces à fournir.</li><li>Assistance pour constituer la candidature dès l'ouverture officielle.</li><li>Orientation pour les démarches de visa après sélection.</li></ul><a href="#inscription" class="info-link">Recevoir les informations</a></div><div class="feature-box"><span class="highlight">Programme annuel — référence</span><h3>Bourse de langue et culture portugaises 🇵🇹</h3><p>Les programmes précédents ont prévu une formation sur environ huit mois et une allocation pour les bénéficiaires sélectionnés. Le montant et les conditions de 2027 dépendront du nouvel appel officiel.</p><div class="line"></div><p><strong style="color:white">À retenir :</strong> la préparation du dossier n'est ni une inscription officielle à la bourse ni une garantie de sélection ou de visa.</p></div></div></section>
-    <section id="demarches"><div class="wrap"><div class="heading"><p class="eyebrow">Notre méthode</p><h2>Un accompagnement étape par étape</h2><p>Nous expliquons les démarches et les frais d'accompagnement avant l'engagement du candidat.</p></div><div class="steps"><div class="step"><div class="number">01</div><h3>Premier contact</h3><p>Décrivez votre diplôme, votre âge et votre projet de formation.</p></div><div class="step"><div class="number">02</div><h3>Documents & analyse</h3><p>Transmettez des copies lisibles de vos documents pour une première étude de profil.</p></div><div class="step"><div class="number">03</div><h3>Rendez-vous</h3><p>Une rencontre peut être organisée sur rendez-vous après analyse du dossier.</p></div><div class="step"><div class="number">04</div><h3>Candidature & visa</h3><p>Après accord, accompagnement selon les étapes de candidature et d'orientation consulaire.</p></div></div></div></section>
-    <section class="alt" id="contact"><div class="wrap contact-grid"><div class="contact-details"><p class="eyebrow">Parlons de votre projet</p><h2>Contactez Believe Travel</h2><p>Notre équipe vous répond et vous indique comment transmettre les pièces nécessaires. Les rencontres se font uniquement sur rendez-vous.</p><a class="contact-link" href="https://wa.me/243858909982" target="_blank" rel="noopener"><span class="ico">💬</span> WhatsApp : +243 858 909 982</a><a class="contact-link" href="mailto:contact@believetravel.lat"><span class="ico">✉️</span> contact@believetravel.lat</a><p style="font-size:13px;margin-top:30px">Les admissions, attributions de bourses et décisions de visa relèvent des établissements et autorités compétents. Believe Travel ne garantit pas leur obtention.</p></div>
-    <form id="inscription"><h3>Demande d'orientation</h3><p>Remplissez ce formulaire : votre message s'ouvrira dans WhatsApp pour que vous puissiez l'envoyer à notre équipe.</p><div class="two"><div class="field"><label for="nom">Nom complet *</label><input id="nom" name="nom" required autocomplete="name" placeholder="Votre nom"></div><div class="field"><label for="telephone">Téléphone / WhatsApp *</label><input id="telephone" name="telephone" type="tel" required autocomplete="tel" placeholder="+243..."></div></div><div class="two"><div class="field"><label for="diplome">Dernier diplôme *</label><select id="diplome" name="diplome" required><option value="">Choisir</option><option>Diplôme d'État / secondaire</option><option>Licence / Bachelor</option><option>Master / DEA / DES</option><option>Autre</option></select></div><div class="field"><label for="parcours">Projet d'études *</label><select id="parcours" name="parcours" required><option value="">Choisir</option><option>Licence</option><option>Master / MBA</option><option>Doctorat</option><option>Bourse de langue portugaise</option><option>Autre projet</option></select></div></div><div class="field"><label for="message">Quelques mots sur votre projet (facultatif)</label><textarea id="message" name="message" placeholder="Domaine souhaité, année de diplôme, langue..."></textarea></div><button type="submit" class="btn" style="width:100%">💬 Envoyer ma demande sur WhatsApp</button><p class="hint">Aucun document personnel n'est publié sur ce site. Pour les pièces justificatives, contactez-nous par e-mail. Le bouton ouvre WhatsApp, où vous confirmez vous-même l'envoi.</p></form>
+    <section class="blue" id="programme"><div class="wrap">
+      <div class="article"><div class="photo"><img src="assets/bourse-portugal-2027.jpg" alt="Accompagnement"></div><div><p class="eyebrow">La nouvelle centrale d'orientation</p><h2>Préparez votre avenir avec méthode.</h2><p>Believe Travel vous aide à comprendre les possibilités de formation, à organiser votre dossier et à avancer étape par étape.</p><p>Nous analysons votre dernier diplôme, votre domaine souhaité et votre objectif afin de vous présenter les pistes les plus cohérentes.</p><div class="big">« Une bonne préparation transforme un projet en chemin clair. »</div></div></div>
+      <div class="article reverse"><div><p>Chaque formation possède ses propres conditions. Notre accompagnement couvre l'orientation, la préparation des pièces, le suivi de candidature et l'explication des démarches.</p><p>Les admissions et décisions de visa appartiennent aux établissements et autorités compétents. Believe Travel ne garantit pas leur décision.</p><a class="btn white" href="rendez-vous/">Commencer mon projet →</a></div><div class="photo"><img src="assets/portugal-2027-banner.jpg" alt="Portugal 2027"></div></div>
     </div></section>
+    <section class="mint" id="bourses"><div class="wrap program"><div class="program-photo"><img src="assets/bourse-portugal-2027.jpg" alt="Bourses et portugais"></div><div class="program-box"><p class="eyebrow">Bourses & portugais</p><h2>Préparez votre candidature 2027</h2><p>Une formation en langue et culture portugaises peut renforcer vos compétences et préparer d'autres projets d'études.</p><ul class="checks"><li>Analyse préliminaire du profil.</li><li>Informations sur les programmes et les pièces demandées.</li><li>Assistance pour constituer la candidature.</li><li>Orientation pour les démarches après sélection.</li></ul><a class="btn blue" href="rendez-vous/">Recevoir les informations</a><p class="warning"><strong>À retenir :</strong> la préparation du dossier n'est ni une inscription officielle à une bourse ni une garantie de sélection ou de visa.</p></div></div></section>
+    <section class="blue" id="etapes"><div class="wrap"><p class="eyebrow" style="text-align:center">Notre méthode</p><h2 class="title">Un parcours en quatre étapes</h2><div class="steps"><article class="step"><b>01</b><h3>Premier contact</h3><p>Présentez votre diplôme et votre projet.</p></article><article class="step"><b>02</b><h3>Analyse</h3><p>Nous examinons les informations transmises.</p></article><article class="step"><b>03</b><h3>Rendez-vous</h3><p>Choisissez une date et confirmez votre réservation.</p></article><article class="step"><b>04</b><h3>Accompagnement</h3><p>Avancez selon les étapes expliquées.</p></article></div></div></section>
+    <section class="mint"><div class="wrap"><h2 class="title">Liens utiles</h2><div class="useful"><a href="#services"><img src="assets/bourse-portugal-2027.jpg" alt=""><div><strong>Formations au Portugal</strong><span>Lire plus →</span></div></a><a href="#bourses"><img src="assets/portugal-2027-banner.jpg" alt=""><div><strong>Bourses 2027</strong><span>Lire plus →</span></div></a><a href="rendez-vous/"><img src="assets/rendez-vous-banner.jpg" alt=""><div><strong>Prendre rendez-vous</strong><span>Réserver →</span></div></a><a href="https://wa.me/243858909982"><img src="assets/bourse-portugal-2027.jpg" alt=""><div><strong>WhatsApp Believe Travel</strong><span>Écrire →</span></div></a></div></div></section>
+    <section class="black banner"><div class="wrap"><p class="eyebrow">Believe Travel</p><h2>Votre avenir académique commence ici.</h2><p>Une équipe à votre écoute pour orienter votre projet et vous aider à préparer les prochaines étapes.</p><a class="btn" href="rendez-vous/">Planifier mon rendez-vous →</a></div></section>
+    <section class="mint"><div class="wrap cta"><h2>Suggestions ?<br>Questions ?</h2><div class="cta-actions"><a class="btn orange" href="https://wa.me/243858909982">Envoyer un message</a><a class="btn blue" href="mailto:contact@believetravel.lat">Envoyer un e-mail</a></div></div></section>
   </main>
-  <footer><div class="wrap"><div class="foot-grid"><div><strong>Believe Travel ✈️</strong><p>Orientation et accompagnement pour les études au Portugal et les démarches de mobilité internationale.</p></div><div><p><a href="#formations">Formations</a> · <a href="#bourses">Bourses</a> · <a href="#demarches">Démarches</a> · <a href="#contact">Contact</a></p><p>contact@believetravel.lat<br>+243 858 909 982</p></div></div><div class="copyright">© <span id="year">2026</span> Believe Travel. Tous droits réservés. • Mon voyage de rêve !</div></div></footer>
-  <a class="float-wa" href="https://wa.me/243858909982" target="_blank" rel="noopener" aria-label="Contacter Believe Travel sur WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.7a8.5 8.5 0 0 1-12.6 7.5L3.5 20.5l1.3-4.3A8.5 8.5 0 1 1 20.5 11.7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.1 7.8c.2-.5.5-.5.8-.5h.5c.2 0 .4.1.5.4l.8 1.9c.1.3 0 .5-.2.7l-.6.7c-.2.2-.1.4 0 .6.7 1.2 1.7 2.1 2.9 2.8.2.1.4.1.6-.1l.8-1c.2-.2.4-.3.7-.2l1.9.9c.3.1.4.3.4.6 0 .6-.3 1.5-.8 1.9-.5.4-1.2.7-2 .6-1.1-.2-2.7-.8-4.5-2.3-1.5-1.3-2.6-2.8-3-4-.4-1.1 0-2.3.4-2.8.2-.1.5-.2.8-.2Z" fill="currentColor"/></svg><span>WhatsApp</span></a>
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-    const toggle = document.getElementById('menu-toggle');
-    const nav = document.getElementById('menu');
-    toggle.addEventListener('click', () => {const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));});
-    nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false');}));
-    document.getElementById('inscription').addEventListener('submit', function (event) {
-      event.preventDefault();
-      const data = new FormData(this);
-      const message = ['Bonjour Believe Travel,','Je souhaite recevoir des informations sur mon projet d’études au Portugal.','',`Nom : ${data.get('nom')}`,`WhatsApp : ${data.get('telephone')}`,`Diplôme : ${data.get('diplome')}`,`Projet : ${data.get('parcours')}`,`Précisions : ${data.get('message') || 'Non précisées'}`].join('\n');
-      const url = 'https://wa.me/243858909982?text=' + encodeURIComponent(message);
-      window.open(url,'_blank','noopener');
-    });
-  </script>
+  <footer><div class="wrap"><div class="footer"><div><strong>Believe Travel</strong><p>Orientation et accompagnement pour les études au Portugal.</p></div><p>contact@believetravel.lat<br>+243 858 909 982</p></div><div class="copy">© <span id="year"></span> Believe Travel. Tous droits réservés.</div></div></footer>
+  <a class="wa" href="https://wa.me/243858909982" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M20.5 11.7a8.5 8.5 0 0 1-12.6 7.5L3.5 20.5l1.3-4.3A8.5 8.5 0 1 1 20.5 11.7Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.1 7.8c.2-.5.5-.5.8-.5h.5c.2 0 .4.1.5.4l.8 1.9c.1.3 0 .5-.2.7l-.6.7c-.2.2-.1.4 0 .6.7 1.2 1.7 2.1 2.9 2.8.2.1.4.1.6-.1l.8-1c.2-.2.4-.3.7-.2l1.9.9c.3.1.4.3.4.6 0 .6-.3 1.5-.8 1.9-.5.4-1.2.7-2 .6-1.1-.2-2.7-.8-4.5-2.3-1.5-1.3-2.6-2.8-3-4-.4-1.1 0-2.3.4-2.8.2-.1.5-.2.8-.2Z" fill="currentColor"/></svg></a>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();const b=document.getElementById('menuBtn'),n=document.getElementById('links');b.addEventListener('click',()=>n.classList.toggle('open'));n.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>n.classList.remove('open')));</script>
 </body>
 </html>
