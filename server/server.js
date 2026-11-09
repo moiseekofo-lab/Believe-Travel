@@ -7,6 +7,7 @@ const PAWAPAY_API_TOKEN = process.env.PAWAPAY_API_TOKEN || "";
 const PAWAPAY_BASE_URL = process.env.PAWAPAY_BASE_URL || "https://api.pawapay.io/v2";
 const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "https://believetravel.lat").replace(/\/$/, "");
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || PUBLIC_SITE_URL;
+const ALLOWED_ORIGINS = new Set([ALLOWED_ORIGIN, PUBLIC_SITE_URL, "https://believetravel.lat", "https://www.believetravel.lat"]);
 const DATABASE_URL = process.env.DATABASE_URL || "";
 const TAKO_WEBHOOK_URL = process.env.TAKO_WEBHOOK_URL || "";
 const BELIEVE_ADMIN_KEY = process.env.BELIEVE_ADMIN_KEY || "";
@@ -133,7 +134,7 @@ async function pawaPay(path, options = {}) {
 
 const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin;
-  const corsOrigin = origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
+  const corsOrigin = ALLOWED_ORIGINS.has(origin) ? origin : ALLOWED_ORIGIN;
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
   if (req.method === "OPTIONS") return sendJson(res, 204, {}, corsOrigin);
