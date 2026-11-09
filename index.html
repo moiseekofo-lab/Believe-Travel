@@ -116,6 +116,29 @@
     @media(max-width:960px){nav {gap:11px}nav a{font-size:13px}.hero-grid {gap:25px}.steps{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:760px){.topline .wrap {justify-content:center;text-align:center} .menu-toggle {display:block}nav {display:none;position:absolute;left:0;right:0;top:100%;background:white;padding:20px;flex-direction:column;align-items:stretch;box-shadow:0 16px 23px rgba(0,0,0,.1)}nav.open {display:flex}nav a {padding:5px 0}.hero{background-position:center}.hero::before{content:"";position:absolute;inset:0;background:rgba(4,12,30,.25)}.hero-grid{grid-template-columns:1fr;padding:72px 0}.hero-card {display:none}.cards,.feature,.contact-grid {grid-template-columns:1fr}.feature {gap:25px}section{padding:63px 0}.wrap{width:min(100% - 28px,1160px)}.two {grid-template-columns:1fr}.float-wa{right:12px;bottom:12px;padding:11px 15px;font-size:13px}.brand{font-size:19px}}
     @media(max-width:430px){.steps{grid-template-columns:1fr}.hero-card{padding:18px}form{padding:20px}.trust{gap:12px}}
+
+    /* Refonte inspirée du modèle éditorial fourni */
+    :root{--blue:#2878f5;--lime:#c7f000;--mint:#e3f8e7;--orange:#ff6b1a;--ink:#111318}
+    body{color:var(--ink);background:#fff}
+    header{border:0;box-shadow:0 1px 0 #dfe7ef}
+    .navbar{min-height:82px}.brand-mark{border:0;box-shadow:none;background:transparent}.btn{border-radius:10px;box-shadow:none}.menu-toggle{background:#f2f5fa;border:0}
+    .hero{background:var(--blue);color:#fff;padding:54px 0}
+    .hero-grid{grid-template-columns:.86fr 1.14fr;gap:58px;padding:0;min-height:440px}
+    .hero-grid::before{content:"";grid-column:1;grid-row:1;background:url("assets/portugal-2027-banner.jpg") center/cover;border:15px solid var(--lime);border-radius:30px;min-height:430px}
+    .hero-grid>div:first-child{grid-column:2;grid-row:1;align-self:center}
+    .hero::after,.hero::before{display:none!important}.pill{font-size:13px;text-transform:uppercase;letter-spacing:1px}
+    h1{font-size:clamp(50px,7vw,82px);line-height:.98;letter-spacing:-3px;color:#111;margin:28px 0 20px}h1 span{color:#111}
+    .hero p{color:#fff;font-size:18px}.hero .actions .btn:first-child{background:var(--lime)!important;border-radius:10px}.btn-white{border-radius:10px}.trust{font-weight:700;color:#fff}
+    .notice{background:#050505;color:#fff;border:0;padding:16px 0}.notice strong{color:var(--lime)}
+    section{padding:84px 0}.eyebrow{color:var(--orange)}h2{color:#111;font-size:clamp(32px,4.2vw,52px)}
+    #formations{background:var(--mint)}#formations .heading{text-align:center;margin:0 auto 38px}#formations .cards{gap:22px}
+    #formations .card{border:0;border-radius:16px;box-shadow:none;padding:14px 14px 26px;min-height:300px}.card .emoji{background:var(--blue);color:#fff;border-radius:12px}.card h3{font-size:21px;color:#111}.card p{color:#596472}
+    #bourses{background:var(--blue)!important;color:#fff}.feature{gap:55px}.feature>div:first-child{padding:28px 0}.feature h2{color:#111}.feature>div:first-child>p:not(.eyebrow),.feature .list-ticks{color:#eef4ff}.list-ticks li::before{color:var(--lime)}
+    .feature-box{background:linear-gradient(#ffffffed,#ffffffed),url("assets/bourse-portugal-2027.jpg") center/cover;color:#111;border-radius:18px;padding:42px}.feature-box h3{color:#111}.feature-box p{color:#4f5a69}.feature-box .highlight{background:var(--lime);border-radius:9px}.feature-box .line{background:#dfe5ed}.feature-box strong{color:#111!important}.info-link{display:inline-flex;background:#fff;color:#111;text-decoration:none;padding:13px 18px;border-radius:10px}
+    #demarches{background:var(--mint)}#demarches .heading{text-align:center;margin:0 auto 38px}.step{border:0;border-radius:16px}.step .number{background:var(--lime);color:#111;border-radius:12px}
+    #contact{background:#050505!important;color:#fff}.contact-details h2{color:#fff}.contact-details p{color:#c9d0db}.contact-link .ico{background:var(--lime);color:#111;border-radius:50%}form{border:0;border-radius:18px;box-shadow:none;color:#111}
+    footer{background:#050505;border-top:1px solid #30343a}.float-wa{width:54px;height:54px;padding:0;display:grid;place-items:center;border-radius:50%}.float-wa span{display:none}.float-wa svg{width:25px;height:25px}
+    @media(max-width:760px){.hero-grid{grid-template-columns:1fr;min-height:0}.hero-grid::before{grid-column:1;grid-row:2;min-height:285px;border-width:10px}.hero-grid>div:first-child{grid-column:1;grid-row:1}.hero h1{font-size:48px}.hero{padding:38px 0}.cards{grid-template-columns:1fr}.feature-box{padding:25px}}
   </style>
 </head>
 <body>
