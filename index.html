@@ -38,9 +38,9 @@
     .btn-outline {border:2px solid #d3ddf0; color:var(--navy); background:white;box-shadow:none}
     .btn-outline:hover {background:#f4f7ff}
     .menu-toggle {display:none; background:transparent; border:1px solid var(--border); border-radius:9px; padding:8px 12px; font-size:23px}
-    .hero {background:radial-gradient(circle at 90% 20%,#324e90 0,transparent 45%),linear-gradient(125deg,#0b173e 20%,#122b62 85%);color:white;overflow:hidden;position:relative}
-    .hero::after {content:"";position:absolute;right:-130px;top:60px;width:480px;height:480px;border:90px solid rgba(201,240,25,.06);border-radius:50%;pointer-events:none}
-    .hero-grid {display:grid;grid-template-columns:1.16fr .84fr;align-items:center;gap:60px;padding:100px 0 110px;position:relative;z-index:1}
+    .hero {background:linear-gradient(90deg,rgba(4,12,30,.88) 0%,rgba(4,12,30,.68) 48%,rgba(4,12,30,.22) 100%),url("assets/portugal-2027-banner.jpg") center/cover no-repeat;color:white;overflow:hidden;position:relative}
+    .hero::after {display:none}
+    .hero-grid {display:grid;grid-template-columns:minmax(0,620px) 1fr;align-items:center;gap:60px;padding:100px 0 110px;position:relative;z-index:1}
     .pill {display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:50px;background:rgba(201,240,25,.14);color:#ecffad;font-weight:750;letter-spacing:.2px;font-size:13px;border:1px solid rgba(201,240,25,.28)}
     h1,h2,h3,p {margin-top:0}
     h1 {font-size:clamp(37px,5vw,66px);line-height:1.09;letter-spacing:-2px;margin:22px 0}
@@ -49,7 +49,7 @@
     .actions {display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
     .trust {display:flex;gap:24px;flex-wrap:wrap;margin-top:34px;font-size:13px;color:#dbe7ff}
     .trust b {color:white}
-    .hero-card {background:#fff;color:var(--ink);border-radius:28px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.25);transform:rotate(2deg);position:relative}
+    .hero-card {display:none}
     .hero-card .photo {height:175px;border-radius:18px;background:linear-gradient(120deg,#bfea38,#91d6ec);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
     .photo .flag {font-size:90px;filter:drop-shadow(0 8px 9px rgba(0,0,0,.13))}
     .photo::before,.photo::after {content:"";position:absolute;width:200px;height:200px;border:2px solid rgba(255,255,255,.45);border-radius:50%}
@@ -108,7 +108,7 @@
     .float-wa svg {width:18px;height:18px;flex:0 0 18px;display:block}
     .float-wa:hover {background:#178c49}
     @media(max-width:960px){nav {gap:11px}nav a{font-size:13px}.hero-grid {gap:25px}.steps{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:760px){.topline .wrap {justify-content:center;text-align:center} .menu-toggle {display:block}nav {display:none;position:absolute;left:0;right:0;top:100%;background:white;padding:20px;flex-direction:column;align-items:stretch;box-shadow:0 16px 23px rgba(0,0,0,.1)}nav.open {display:flex}nav a {padding:5px 0}.hero-grid{grid-template-columns:1fr;padding:72px 0}.hero-card {max-width:420px;transform:none}.cards,.feature,.contact-grid {grid-template-columns:1fr}.feature {gap:25px}section{padding:63px 0}.wrap{width:min(100% - 28px,1160px)}.two {grid-template-columns:1fr}.float-wa{right:12px;bottom:12px;padding:11px 15px;font-size:13px}.brand{font-size:19px}}
+    @media(max-width:760px){.topline .wrap {justify-content:center;text-align:center} .menu-toggle {display:block}nav {display:none;position:absolute;left:0;right:0;top:100%;background:white;padding:20px;flex-direction:column;align-items:stretch;box-shadow:0 16px 23px rgba(0,0,0,.1)}nav.open {display:flex}nav a {padding:5px 0}.hero{background-position:center}.hero::before{content:"";position:absolute;inset:0;background:rgba(4,12,30,.25)}.hero-grid{grid-template-columns:1fr;padding:72px 0}.hero-card {display:none}.cards,.feature,.contact-grid {grid-template-columns:1fr}.feature {gap:25px}section{padding:63px 0}.wrap{width:min(100% - 28px,1160px)}.two {grid-template-columns:1fr}.float-wa{right:12px;bottom:12px;padding:11px 15px;font-size:13px}.brand{font-size:19px}}
     @media(max-width:430px){.steps{grid-template-columns:1fr}.hero-card{padding:18px}form{padding:20px}.trust{gap:12px}}
   </style>
 </head>
