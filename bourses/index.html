@@ -475,18 +475,18 @@ pdf2htmlEX.defaultViewer = new pdf2htmlEX.Viewer({});
 </div>
 <script id="believe-mobile-fit-script">
 (function(){
-  var BASE_WIDTH=405,BASE_HEIGHT=3240;
+  var CONTENT_WIDTH=350,CONTENT_HEIGHT=2450;
   function fitBoursePage(){
     var page=document.getElementById('pf1'),container=document.getElementById('page-container');
     if(!page||!container)return;
-    var width=document.documentElement.clientWidth||window.innerWidth||BASE_WIDTH;
-    var scale=Math.min(1,width/BASE_WIDTH);
+    var width=Math.min(405,document.documentElement.clientWidth||window.innerWidth||CONTENT_WIDTH);
+    var scale=width/CONTENT_WIDTH;
     page.style.transform='scale('+scale+')';
     page.style.webkitTransform='scale('+scale+')';
     page.style.transformOrigin='top center';
     page.style.webkitTransformOrigin='top center';
-    container.style.height=Math.ceil(BASE_HEIGHT*scale)+'px';
-    container.style.minHeight=Math.ceil(BASE_HEIGHT*scale)+'px';
+    container.style.height=Math.ceil(CONTENT_HEIGHT*scale)+'px';
+    container.style.minHeight=Math.ceil(CONTENT_HEIGHT*scale)+'px';
   }
   window.addEventListener('resize',fitBoursePage,{passive:true});
   window.addEventListener('orientationchange',fitBoursePage,{passive:true});
