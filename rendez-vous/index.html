@@ -135,6 +135,9 @@
     const dateDisplay=document.getElementById('date-display');
     const firstAvailable='2026-11-16';
     const lastAvailable='2027-02-16';
+    const now=new Date();
+    const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const firstBookable=today>lastAvailable?lastAvailable:(today>firstAvailable?today:firstAvailable);
     const weekdayRotation=[0,3,1,2,4]; // lundi, jeudi, mardi, mercredi, vendredi
     const availableDates=[];
     const startDate=new Date(firstAvailable+'T00:00:00Z');
@@ -152,7 +155,7 @@
     const calendarDays=document.getElementById('calendar-days');
     const calendarPrev=document.getElementById('calendar-prev');
     const calendarNext=document.getElementById('calendar-next');
-    let visibleMonth=new Date('2026-11-01T00:00:00Z');
+    let visibleMonth=new Date(firstBookable.slice(0,7)+'-01T00:00:00Z');
     function renderCalendar(){
       calendarTitle.textContent=new Intl.DateTimeFormat('fr-FR',{month:'long',year:'numeric',timeZone:'UTC'}).format(visibleMonth);
       calendarDays.replaceChildren();
@@ -163,7 +166,7 @@
       for(let day=1;day<=count;day++){
         const value=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const button=document.createElement('button');button.type='button';button.className='calendar-day';button.textContent=day;
-        if(availableDates.includes(value)){
+        if(value>=today&&availableDates.includes(value)){
           button.classList.add('available');
           if(date.value===value)button.classList.add('selected');
           button.addEventListener('click',()=>{
@@ -176,7 +179,8 @@
         calendarDays.appendChild(button);
       }
       const monthIndex=year*12+month;
-      calendarPrev.disabled=monthIndex<=2026*12+10;
+      const firstMonth=new Date(firstBookable.slice(0,7)+'-01T00:00:00Z');
+      calendarPrev.disabled=monthIndex<=firstMonth.getUTCFullYear()*12+firstMonth.getUTCMonth();
       calendarNext.disabled=monthIndex>=2027*12+1;
     }
     dateDisplay.addEventListener('click',()=>{renderCalendar();calendarOverlay.hidden=false});
@@ -185,6 +189,7 @@
     calendarNext.addEventListener('click',()=>{visibleMonth.setUTCMonth(visibleMonth.getUTCMonth()+1);renderCalendar()});
     function isAvailableDate(value){
       if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+      if(value<today)return false;
       const start=new Date(firstAvailable+'T00:00:00Z');
       const chosen=new Date(value+'T00:00:00Z');
       const end=new Date(lastAvailable+'T00:00:00Z');
