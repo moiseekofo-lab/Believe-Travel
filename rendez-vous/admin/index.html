@@ -22,7 +22,7 @@ q('#withdrawForm').onsubmit=async event=>{event.preventDefault();const key=sessi
 if(sessionStorage.getItem('believeAdminKey'))load();else warmServer();
 const clientPanel = document.createElement('details');
 clientPanel.className = 'card';
-clientPanel.style.marginBottom = '16px';
+clientPanel.style.marginTop = '16px';
 const clientSummary = document.createElement('summary');
 clientSummary.textContent = 'Gérer les clés clients';
 clientSummary.style.cursor = 'pointer';
@@ -40,5 +40,5 @@ q('#connect').addEventListener('click', () => {
   clientPanel.open = false;
   clientPanel.querySelector('iframe')?.remove();
 });
-q('main').prepend(clientPanel);
+q('main').append(clientPanel);
 </script></body></html>
