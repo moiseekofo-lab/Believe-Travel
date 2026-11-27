@@ -11,14 +11,25 @@
   input{box-sizing:border-box;width:100%;margin:5px 0 14px}
   button{background:#1760cc;color:white;cursor:pointer}
   button:disabled{opacity:.55}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  #login{position:relative;margin:12px 0;background:white url('/assets/connexion-client.webp') center/100% 100% no-repeat;aspect-ratio:672/950}
+  #login input,#login button{position:absolute;box-sizing:border-box;margin:0}
+  #login input{left:14.7%;top:45.25%;width:70.5%;height:5.15%;min-height:24px;border:0;border-radius:999px;background:#e3e3e3;padding:0 12px}
+  #login button{left:21%;top:87%;width:58%;height:5.5%;min-height:32px;border:0;background:transparent}
+  #login :is(input,button):focus-visible{outline:2px solid #1760cc;outline-offset:2px}
+  #login button:disabled{background:#e3e3e380;cursor:wait}
+  @media(max-width:540px){
+    body{padding:0;background:white}
+    main{padding:12px;border-radius:0}
+  }
 </style>
 <main>
   <a href="/">Accueil Believe Travel</a>
-  <h1>Espace client</h1>
+  <h1 class="sr-only">Espace client</h1>
   <form id="login">
-    <label for="key">Clé privée</label>
+    <label class="sr-only" for="key">Clé privée</label>
     <input id="key" type="password" required autocomplete="off">
-    <button>Accéder à mon dossier</button>
+    <button><span class="sr-only">Accéder à mon dossier</span></button>
   </form>
   <section id="account" hidden>
     <h2 id="name"></h2>
