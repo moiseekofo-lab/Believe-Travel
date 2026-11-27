@@ -18,6 +18,9 @@ export async function initClientPayments(pool) {
     CREATE INDEX IF NOT EXISTS believe_client_installments_account_idx
       ON believe_client_installments(account_id);
     ALTER TABLE believe_client_installments ADD COLUMN IF NOT EXISTS redirect_url TEXT;
+    ALTER TABLE believe_client_accounts ADD COLUMN IF NOT EXISTS contact TEXT NOT NULL DEFAULT '';
+    ALTER TABLE believe_client_accounts ADD COLUMN IF NOT EXISTS service TEXT NOT NULL DEFAULT '';
+    ALTER TABLE believe_client_installments ADD COLUMN IF NOT EXISTS manual_reference TEXT;
   `);
 }
 
@@ -41,27 +44,81 @@ export async function clientPayments({ req, path, pool, send, readJson, adminAut
   if (path === "/api/admin/clients") {
     if (!adminAuthorized(req)) return send(401, { error: "Accès refusé." });
     if (req.method === "GET") {
-      const { rows } = await pool.query("SELECT id,name,total,revoked FROM believe_client_accounts ORDER BY name");
+      const { rows } = await pool.query(`
+        SELECT a.id,a.name,a.contact,a.service,a.total,a.revoked,
+          COALESCE(SUM(i.amount) FILTER (WHERE i.status='CONFIRMED'),0) AS paid,
+          COALESCE(jsonb_agg(jsonb_build_object('amount',i.amount,'status',i.status,'date',i.created_at,
+            'reference',COALESCE(i.manual_reference,i.id::text)) ORDER BY i.created_at DESC)
+            FILTER (WHERE i.id IS NOT NULL),'[]'::jsonb) AS history
+        FROM believe_client_accounts a LEFT JOIN believe_client_installments i ON i.account_id=a.id
+        GROUP BY a.id ORDER BY a.name
+      `);
       return send(200, { accounts: rows });
     }
     if (req.method === "POST") {
       const body = await readJson(req);
+      if (body.accountId) {
+        const id = String(body.accountId);
+        const manual = body.action === "adjust";
+        const reference = String(body.reference || "").trim();
+        const amount = manual ? body.amount : body.total;
+        if (!/^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id) ||
+            !["adjust", "total"].includes(body.action) || !validAmount(amount) ||
+            (manual && (!reference || reference.length > 160))) {
+          return send(400, { error: "Montant ou référence invalide." });
+        }
+        const db = await pool.connect();
+        try {
+          await db.query("BEGIN");
+          const { rows: [account] } = await db.query("SELECT total FROM believe_client_accounts WHERE id=$1 FOR UPDATE", [id]);
+          const { rows: [balance] } = await db.query(
+            "SELECT COALESCE(SUM(amount) FILTER (WHERE status IN ('PENDING','CONFIRMED')),0) AS reserved FROM believe_client_installments WHERE account_id=$1", [id]
+          );
+          if (!account || (manual ? Number(amount) + Number(balance.reserved) > Number(account.total) : Number(amount) < Number(balance.reserved))) {
+            await db.query("ROLLBACK");
+            return send(409, { error: "Montant incompatible avec les versements confirmés ou en attente." });
+          }
+          if (manual) {
+            const adjustment = await db.query(
+              `INSERT INTO believe_client_installments(id,account_id,amount,status,manual_reference)
+               SELECT $1,$2,$3,'CONFIRMED',$4 WHERE NOT EXISTS (
+                 SELECT 1 FROM believe_client_installments WHERE account_id=$2 AND manual_reference=$4
+               )`, [randomUUID(), id, String(amount), reference]
+            );
+            if (!adjustment.rowCount) {
+              await db.query("ROLLBACK");
+              return send(409, { error: "Cette référence manuelle a déjà été enregistrée." });
+            }
+          } else await db.query("UPDATE believe_client_accounts SET total=$2 WHERE id=$1", [id, String(amount)]);
+          await db.query("COMMIT");
+          return send(200, { ok: true });
+        } catch (error) {
+          await db.query("ROLLBACK");
+          throw error;
+        } finally {
+          db.release();
+        }
+      }
       if (body.revoke && /^[\da-f-]{36}$/i.test(body.revoke)) {
         await pool.query("UPDATE believe_client_accounts SET revoked=true WHERE id=$1", [body.revoke]);
         return send(200, { ok: true });
       }
       const name = typeof body.name === "string" ? body.name.trim() : "";
-      if (!name || name.length > 120 || !validAmount(body.total)) return send(400, { error: "Nom ou total CDF invalide." });
+      const contact = normalizePhone(body.contact);
+      const service = typeof body.service === "string" ? body.service.trim() : "";
+      if (!name || name.length > 120 || !contact || !service || service.length > 160 || !validAmount(body.total)) {
+        return send(400, { error: "Indiquez le nom, un numéro de contact valide, le service et le total en CDF." });
+      }
       const key = randomBytes(32).toString("base64url");
-      await pool.query("INSERT INTO believe_client_accounts(id,name,key_hash,total) VALUES($1,$2,$3,$4)",
-        [randomUUID(), name, digest(key), String(body.total)]);
+      await pool.query("INSERT INTO believe_client_accounts(id,name,key_hash,total,contact,service) VALUES($1,$2,$3,$4,$5,$6)",
+        [randomUUID(), name, digest(key), String(body.total), contact, service]);
       return send(201, { key });
     }
   }
   const key = (req.headers.authorization || "").match(/^Bearer ([\w-]{43})$/)?.[1];
   if (!key) return send(401, { error: "Clé invalide." });
   const { rows: [account] } = await pool.query(
-    "SELECT id,name,total FROM believe_client_accounts WHERE key_hash=$1 AND NOT revoked", [digest(key)]
+    "SELECT id,name,total,service FROM believe_client_accounts WHERE key_hash=$1 AND NOT revoked", [digest(key)]
   );
   if (!account) return send(401, { error: "Clé invalide ou révoquée." });
   if (path === "/api/client/account" && req.method === "GET") {
@@ -70,10 +127,11 @@ export async function clientPayments({ req, path, pool, send, readJson, adminAut
     );
     await Promise.allSettled(pending.map(({ id }) => refreshInstallment(pool, pawaPay, id)));
     const { rows: installments } = await pool.query(
-      "SELECT amount,status,created_at, CASE WHEN status='PENDING' THEN redirect_url END AS resume_url FROM believe_client_installments WHERE account_id=$1 ORDER BY created_at DESC", [account.id]
+      "SELECT amount,status,created_at,COALESCE(manual_reference,id::text) AS reference, CASE WHEN status='PENDING' THEN redirect_url END AS resume_url FROM believe_client_installments WHERE account_id=$1 ORDER BY created_at DESC", [account.id]
     );
     const paid = installments.filter(row => row.status === "CONFIRMED").reduce((sum, row) => sum + Number(row.amount), 0);
-    return send(200, { name: account.name, total: account.total, paid, remaining: Number(account.total) - paid, installments });
+    return send(200, { name: account.name, service: account.service, total: account.total, paid,
+      remaining: Number(account.total) - paid, percent: 100 * paid / Number(account.total), installments });
   }
   if (path === "/api/client/installments" && req.method === "POST") {
     const body = await readJson(req);

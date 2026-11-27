@@ -22,7 +22,9 @@
   </form>
   <section id="account" hidden>
     <h2 id="name"></h2>
+    <p id="service"></p>
     <p id="balance"></p>
+    <p><progress id="progress" max="100" value="0" aria-label="Pourcentage payé"></progress> <span id="percent"></span></p>
     <ul id="history"></ul>
     <form id="payment">
       <label for="amount">Montant du versement en CDF</label>
@@ -59,14 +61,19 @@
     q("login").hidden = true;
     q("account").hidden = false;
     q("name").textContent = data.name;
+    q("service").textContent = data.service || "";
     q("balance").textContent = `Total ${money(data.total)} · Payé ${money(data.paid)} · Reste ${money(data.remaining)}`;
+    const percent = data.percent ?? 100 * Number(data.paid) / Number(data.total);
+    q("progress").value = percent;
+    q("percent").textContent = percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " % payé";
     const pending = data.installments.some(row => row.status === "PENDING");
     q("payment").hidden = pending || data.remaining === 0;
     q("amount").max = data.remaining;
     q("history").replaceChildren(...data.installments.map(row => {
       const item = document.createElement("li");
       const labels = { PENDING: "En attente", CONFIRMED: "Confirmé", FAILED: "Échoué" };
-      item.textContent = money(row.amount) + " · " + labels[row.status];
+      item.textContent = new Date(row.created_at).toLocaleString("fr-FR") + " · " + money(row.amount)
+        + " · " + labels[row.status] + (row.reference ? " · Réf. " + row.reference : "");
       if (row.resume_url) {
         const resume = document.createElement("a");
         resume.href = row.resume_url;

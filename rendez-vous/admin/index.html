@@ -31,7 +31,7 @@ clientPanel.addEventListener('toggle', () => {
   if (!clientPanel.open || !sessionStorage.getItem('believeAdminKey') || clientPanel.querySelector('iframe')) return;
   const frame = document.createElement('iframe');
   frame.title = 'Gestion des clés clients';
-  frame.src = './clients.html?embedded=1';
+  frame.src = '/rendez-vous/admin/clients.html?embedded=1';
   frame.style.cssText = 'display:block;width:100%;height: min(600px, 75vh);border:0';
   clientPanel.append(frame);
 });

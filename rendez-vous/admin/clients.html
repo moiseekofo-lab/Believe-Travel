@@ -9,12 +9,17 @@
   input,button{font:inherit;padding:8px;margin:4px 0 12px}
   input{box-sizing:border-box;width:100%}
   li button{margin-left:12px}
+  li{overflow-wrap:anywhere}
 </style>
 <a id="back" href="./">Administration des paiements</a>
 <h1>Espace client</h1>
 <form id="create" hidden>
-  <label for="name">Nom du client</label>
+  <label for="name">Nom complet du client</label>
   <input id="name" required maxlength="120">
+  <label for="contact">Numéro de contact</label>
+  <input id="contact" type="tel" required>
+  <label for="service">Service</label>
+  <input id="service" maxlength="160" required>
   <label for="total">Montant total des frais en CDF</label>
   <input id="total" type="number" min="1" max="999999999999" step="1" required>
   <button>Créer une clé</button>
@@ -39,7 +44,8 @@
       headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
       body: body ? JSON.stringify(body) : undefined
     });
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 404) throw new Error("Le service de gestion des clients est momentanément indisponible.");
     if (!response.ok) throw new Error(data.error || "Service indisponible.");
     return data;
   }
@@ -57,7 +63,42 @@
     q("create").hidden = false;
     q("accounts").replaceChildren(...accounts.map(account => {
       const item = document.createElement("li");
-      item.textContent = account.name + " · " + Number(account.total).toLocaleString("fr-FR") + " CDF";
+      const total = Number(account.total);
+      const paid = Number(account.paid ?? 0);
+      const money = value => Number(value).toLocaleString("fr-FR") + " CDF";
+      item.textContent = [account.name, account.contact, account.service].filter(Boolean).join(" · ");
+      const balance = document.createElement("p");
+      balance.textContent = `Total ${money(total)} · Payé ${money(paid)} · Solde ${money(total - paid)} · ${(100 * paid / total).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %`;
+      item.append(balance);
+      for (const entry of account.history ?? []) {
+        const payment = document.createElement("p");
+        const labels = { CONFIRMED: "Confirmé", PENDING: "En attente", FAILED: "Échoué" };
+        payment.textContent = `${new Date(entry.date).toLocaleString("fr-FR")} · ${money(entry.amount)} · ${labels[entry.status]} · Réf. ${entry.reference}`;
+        item.append(payment);
+      }
+      const edit = document.createElement("button");
+      edit.textContent = "Modifier le total";
+      edit.onclick = () => {
+        const total = prompt("Nouveau montant total en CDF", account.total);
+        if (total === null) return;
+        run(async () => {
+          await request({ accountId: account.id, action: "total", total: total.trim() });
+          await load();
+        });
+      };
+      const adjust = document.createElement("button");
+      adjust.textContent = "Valider un versement manuel";
+      adjust.onclick = () => {
+        const amount = prompt("Montant du versement manuel en CDF");
+        if (amount === null) return;
+        const reference = prompt("Référence du versement manuel");
+        if (reference === null || !confirm(`Enregistrer ${amount} CDF pour ${account.name} ?`)) return;
+        run(async () => {
+          await request({ accountId: account.id, action: "adjust", amount: amount.trim(), reference });
+          await load();
+        });
+      };
+      item.append(edit, adjust);
       if (account.revoked) item.append(" · Clé révoquée");
       else {
         const button = document.createElement("button");
@@ -78,7 +119,10 @@
     const button = q("create").querySelector("button");
     button.disabled = true;
     await run(async () => {
-      const { key } = await request({ name: q("name").value, total: q("total").value });
+      const { key } = await request({
+        name: q("name").value, contact: q("contact").value,
+        service: q("service").value, total: q("total").value
+      });
       q("client-key").value = key;
       q("result").hidden = false;
       q("create").reset();
