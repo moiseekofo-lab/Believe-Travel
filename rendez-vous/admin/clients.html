@@ -10,7 +10,7 @@
   input{box-sizing:border-box;width:100%}
   li button{margin-left:12px}
 </style>
-<a href="./">Administration des paiements</a>
+<a id="back" href="./">Administration des paiements</a>
 <h1>Espace client</h1>
 <form id="create" hidden>
   <label for="name">Nom du client</label>
@@ -27,6 +27,9 @@
 <ul id="accounts"></ul>
 <script type="module">
   const q = id => document.getElementById(id);
+  if (window.parent !== window && new URLSearchParams(location.search).has("embedded")) {
+    q("back").hidden = true;
+  }
   const api = "https://believe-travel-payments.onrender.com/api/admin/clients";
   async function request(body) {
     const key = sessionStorage.getItem("believeAdminKey");
