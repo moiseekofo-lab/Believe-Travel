@@ -12,19 +12,21 @@
   button{background:#1760cc;color:white;cursor:pointer}
   button:disabled{opacity:.55}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  #login{position:relative;margin:12px 0;background:white url('/assets/connexion-client.webp') center/100% 100% no-repeat;aspect-ratio:672/950}
+  main:has(#login:not([hidden])){max-width:30rem;padding:0;box-shadow:0 8px 28px #14234320}
+  #login{position:relative;margin:0;border-radius:inherit;background:white url('/assets/connexion-client.webp') center/100% 100% no-repeat;aspect-ratio:672/950}
+  main:has(#login:not([hidden])) #notice{margin:0;padding:12px 16px}
+  main:has(#login:not([hidden])) #notice:empty{display:none}
   #login input,#login button{position:absolute;box-sizing:border-box;margin:0}
   #login input{left:14.7%;top:45.25%;width:70.5%;height:5.15%;min-height:24px;border:0;border-radius:999px;background:#e3e3e3;padding:0 12px}
   #login button{left:21%;top:87%;width:58%;height:5.5%;min-height:32px;border:0;background:transparent}
   #login :is(input,button):focus-visible{outline:2px solid #1760cc;outline-offset:2px}
   #login button:disabled{background:#e3e3e380;cursor:wait}
   @media(max-width:540px){
-    body{padding:0;background:white}
-    main{padding:12px;border-radius:0}
+    body{padding:16px 12px}
+    main{padding:12px}
   }
 </style>
 <main>
-  <a href="/">Accueil Believe Travel</a>
   <h1 class="sr-only">Espace client</h1>
   <form id="login">
     <label class="sr-only" for="key">Clé privée</label>
