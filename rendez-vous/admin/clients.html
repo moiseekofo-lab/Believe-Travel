@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clés clients | Believe Travel</title>
+<style>
+  body{font:16px/1.5 system-ui,sans-serif;max-width:38rem;margin:24px auto;padding:0 20px;color:#142343}
+  label,input{display:block}
+  input,button{font:inherit;padding:8px;margin:4px 0 12px}
+  input{box-sizing:border-box;width:100%}
+  li button{margin-left:12px}
+</style>
+<a href="./">Administration des paiements</a>
+<h1>Espace client</h1>
+<form id="create" hidden>
+  <label for="name">Nom du client</label>
+  <input id="name" required maxlength="120">
+  <label for="total">Montant total des frais en CDF</label>
+  <input id="total" type="number" min="1" max="999999999999" step="1" required>
+  <button>Créer une clé</button>
+</form>
+<div id="result" hidden>
+  <label for="client-key">Clé à transmettre en privé au client</label>
+  <input id="client-key" readonly>
+</div>
+<p id="notice" role="status"></p>
+<ul id="accounts"></ul>
+<script type="module">
+  const q = id => document.getElementById(id);
+  const api = "https://believe-travel-payments.onrender.com/api/admin/clients";
+  async function request(body) {
+    const key = sessionStorage.getItem("believeAdminKey");
+    if (!key) throw new Error("Connectez-vous dans l’administration des paiements.");
+    const response = await fetch(api, {
+      method: body ? "POST" : "GET",
+      headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Service indisponible.");
+    return data;
+  }
+  async function run(action) {
+    q("notice").textContent = "Chargement…";
+    try {
+      await action();
+      q("notice").textContent = "";
+    } catch (error) {
+      q("notice").textContent = error.message;
+    }
+  }
+  async function load() {
+    const { accounts } = await request();
+    q("create").hidden = false;
+    q("accounts").replaceChildren(...accounts.map(account => {
+      const item = document.createElement("li");
+      item.textContent = account.name + " · " + Number(account.total).toLocaleString("fr-FR") + " CDF";
+      if (account.revoked) item.append(" · Clé révoquée");
+      else {
+        const button = document.createElement("button");
+        button.textContent = "Révoquer la clé";
+        button.onclick = () => {
+          if (confirm("Révoquer la clé de ce client ?")) run(async () => {
+            await request({ revoke: account.id });
+            await load();
+          });
+        };
+        item.append(button);
+      }
+      return item;
+    }));
+  }
+  q("create").onsubmit = async event => {
+    event.preventDefault();
+    const button = q("create").querySelector("button");
+    button.disabled = true;
+    await run(async () => {
+      const { key } = await request({ name: q("name").value, total: q("total").value });
+      q("client-key").value = key;
+      q("result").hidden = false;
+      q("create").reset();
+      await load();
+    });
+    button.disabled = false;
+  };
+  run(load);
+</script>
+</html>

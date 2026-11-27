@@ -1,6 +1,7 @@
 import http from "node:http";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
+import { initClientPayments, clientPayments, refreshInstallment } from "./client-payments.js";
 
 const PORT = Number(process.env.PORT || 3000);
 const PAWAPAY_API_TOKEN = process.env.PAWAPAY_API_TOKEN || "";
@@ -138,6 +139,15 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
   if (req.method === "OPTIONS") return sendJson(res, 204, {}, corsOrigin);
+  if (url.pathname.startsWith("/api/client/") || url.pathname === "/api/admin/clients") {
+    const send = (status, body) => sendJson(res, status, body, corsOrigin);
+    try {
+      return await clientPayments({ req, path: url.pathname, pool, send, readJson, adminAuthorized, normalizePhone, pawaPay, site: PUBLIC_SITE_URL });
+    } catch (error) {
+      console.error("client-payments", error);
+      return send(502, { error: "Service momentanément indisponible. Actualisez le solde avant de réessayer." });
+    }
+  }
   if (req.method === "GET" && url.pathname === "/health") {
     return sendJson(res, 200, { ok: true, service: "Believe Travel Payments", database: Boolean(pool), takoRouting: Boolean(TAKO_WEBHOOK_URL) }, corsOrigin);
   }
@@ -252,6 +262,9 @@ const server = http.createServer(async (req, res) => {
         await saveRemoteStatus(callback.depositId, data);
         return sendJson(res, 200, { received: true, platform: "BELIEVE_TRAVEL" }, corsOrigin);
       }
+      if (callback.depositId && pool && await refreshInstallment(pool, pawaPay, callback.depositId)) {
+        return sendJson(res, 200, { received: true, platform: "BELIEVE_TRAVEL", type: "INSTALLMENT" }, corsOrigin);
+      }
       if (!TAKO_WEBHOOK_URL) return sendJson(res, 503, { error: "Route TaKo non configurée" }, corsOrigin);
       const forwarded = await fetch(TAKO_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(callback) });
       const forwardedBody = await forwarded.text();
@@ -313,4 +326,4 @@ const server = http.createServer(async (req, res) => {
   return sendJson(res, 404, { error: "Route introuvable" }, corsOrigin);
 });
 
-ensureDatabase().then(() => server.listen(PORT, () => console.log(`Believe Travel Payments listening on ${PORT}`))).catch(error => { console.error("database-init", error); process.exit(1); });
+ensureDatabase().then(() => initClientPayments(pool)).then(() => server.listen(PORT, () => console.log(`Believe Travel Payments listening on ${PORT}`))).catch(error => { console.error("database-init", error); process.exit(1); });

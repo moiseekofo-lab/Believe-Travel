@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Espace client | Believe Travel</title>
+<style>
+  body{font:16px/1.5 system-ui,sans-serif;color:#142343;background:#f2f6ff;margin:0;padding:24px}
+  main{max-width:34rem;margin:auto;background:white;padding:24px;border-radius:16px}
+  label,input{display:block}
+  input,button{font:inherit;padding:10px;border:1px solid #a5b2c9;border-radius:8px}
+  input{box-sizing:border-box;width:100%;margin:5px 0 14px}
+  button{background:#1760cc;color:white;cursor:pointer}
+  button:disabled{opacity:.55}
+</style>
+<main>
+  <a href="/">Accueil Believe Travel</a>
+  <h1>Espace client</h1>
+  <form id="login">
+    <label for="key">Clé privée</label>
+    <input id="key" type="password" required autocomplete="off">
+    <button>Accéder à mon dossier</button>
+  </form>
+  <section id="account" hidden>
+    <h2 id="name"></h2>
+    <p id="balance"></p>
+    <ul id="history"></ul>
+    <form id="payment">
+      <label for="amount">Montant du versement en CDF</label>
+      <input type="number" id="amount" min="1" step="1" required>
+      <label for="phone">Numéro Mobile Money</label>
+      <input type="tel" id="phone" autocomplete="tel" required>
+      <button>Continuer vers Mobile Money</button>
+    </form>
+    <button id="refresh" type="button">Actualiser le solde</button>
+    <button id="logout" type="button">Se déconnecter</button>
+  </section>
+  <p id="notice" role="status"></p>
+</main>
+<script type="module">
+  const api = "https://believe-travel-payments.onrender.com/api/client";
+  const q = id => document.getElementById(id);
+  let key = sessionStorage.getItem("believeClientKey") || "";
+  const money = value => Number(value).toLocaleString("fr-FR") + " CDF";
+
+  async function request(path, options = {}) {
+    const response = await fetch(api + path, {
+      ...options, headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }
+    });
+    const data = await response.json();
+    if (response.status === 401) sessionStorage.removeItem("believeClientKey");
+    if (!response.ok) throw new Error(data.error || "Service indisponible.");
+    return data;
+  }
+
+  async function load() {
+    const data = await request("/account");
+    sessionStorage.setItem("believeClientKey", key);
+    q("key").value = "";
+    q("login").hidden = true;
+    q("account").hidden = false;
+    q("name").textContent = data.name;
+    q("balance").textContent = `Total ${money(data.total)} · Payé ${money(data.paid)} · Reste ${money(data.remaining)}`;
+    const pending = data.installments.some(row => row.status === "PENDING");
+    q("payment").hidden = pending || data.remaining === 0;
+    q("amount").max = data.remaining;
+    q("history").replaceChildren(...data.installments.map(row => {
+      const item = document.createElement("li");
+      const labels = { PENDING: "En attente", CONFIRMED: "Confirmé", FAILED: "Échoué" };
+      item.textContent = money(row.amount) + " · " + labels[row.status];
+      if (row.resume_url) {
+        const resume = document.createElement("a");
+        resume.href = row.resume_url;
+        resume.textContent = "Reprendre le paiement";
+        item.append(" · ", resume);
+      }
+      return item;
+    }));
+    q("notice").textContent = pending ? "Versement en attente de confirmation." : data.remaining === 0 ? "Payé intégralement" : "";
+  }
+
+  async function run(button, action) {
+    button.disabled = true;
+    q("notice").textContent = "Chargement…";
+    try { await action(); }
+    catch (error) { q("notice").textContent = error.message; }
+    finally { button.disabled = false; }
+  }
+  q("login").onsubmit = event => {
+    event.preventDefault();
+    key = q("key").value.trim();
+    run(q("login").querySelector("button"), load);
+  };
+  q("refresh").onclick = () => run(q("refresh"), load);
+  q("logout").onclick = () => {
+    sessionStorage.removeItem("believeClientKey");
+    location.reload();
+  };
+  q("payment").onsubmit = event => {
+    event.preventDefault();
+    run(q("payment").querySelector("button"), async () => {
+      const { redirectUrl } = await request("/installments", {
+        method: "POST", body: JSON.stringify({ amount: q("amount").value, phone: q("phone").value })
+      });
+      location.assign(redirectUrl);
+    });
+  };
+  if (key) load().catch(error => { q("notice").textContent = error.message; });
+</script>
+</html>
