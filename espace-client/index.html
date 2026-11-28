@@ -136,8 +136,15 @@
       q("open-payment").setAttribute("aria-expanded", "false");
     }
     q("amount").max = data.remaining;
-    q("empty-history").hidden = data.installments.length > 0;
-    q("history").replaceChildren(...data.installments.map(row => {
+    const pendingCutoff = Date.now() - 5 * 60 * 1000;
+    const visibleInstallments = data.installments.filter(row =>
+      row.status !== "PENDING" || Date.parse(row.created_at) > pendingCutoff
+    );
+    q("empty-history").hidden = visibleInstallments.length > 0;
+    q("empty-history").textContent = pending && !visibleInstallments.length
+      ? "Aucun versement confirmé."
+      : "Aucun versement enregistré.";
+    q("history").replaceChildren(...visibleInstallments.map(row => {
       const item = document.createElement("li");
       const labels = { PENDING: "En attente", CONFIRMED: "Confirmé", FAILED: "Échoué" };
       item.textContent = new Date(row.created_at).toLocaleString("fr-FR") + " · " + money(row.amount)
@@ -150,7 +157,10 @@
       }
       return item;
     }));
-    q("account-status").textContent = pending ? "Versement en attente de confirmation." : canPay ? "Un solde reste à régler." : "Payé intégralement.";
+    const recentPending = visibleInstallments.some(row => row.status === "PENDING");
+    q("account-status").textContent = recentPending ? "Versement en attente de confirmation."
+      : pending ? "Vérification en cours auprès de PawaPay."
+      : canPay ? "Un solde reste à régler." : "Payé intégralement.";
     if (!submittingPayment) q("notice").textContent = "";
   }
 
