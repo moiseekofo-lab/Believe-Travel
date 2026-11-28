@@ -198,16 +198,20 @@ export async function clientPayments({ req, path, pool, send, readJson, adminAut
     if (!phone || !validAmount(body.amount)) return send(400, { error: "Montant en CDF ou numéro Mobile Money invalide." });
     const id = randomUUID();
     const amount = String(body.amount);
+    const { rows: pending } = await pool.query(
+      "SELECT id FROM believe_client_installments WHERE account_id=$1 AND status='PENDING'", [account.id]
+    );
+    await Promise.allSettled(pending.map(({ id }) => refreshInstallment(pool, pawaPay, id)));
     const db = await pool.connect();
     try {
       await db.query("BEGIN");
       const { rows: [locked] } = await db.query("SELECT total,revoked FROM believe_client_accounts WHERE id=$1 FOR UPDATE", [account.id]);
       const { rows: [balance] } = await db.query(
-        "SELECT COALESCE(SUM(amount) FILTER (WHERE status='CONFIRMED'),0) AS paid, COUNT(*) FILTER (WHERE status='PENDING') AS pending FROM believe_client_installments WHERE account_id=$1", [account.id]
+        "SELECT COALESCE(SUM(amount) FILTER (WHERE status IN ('PENDING','CONFIRMED')),0) AS reserved FROM believe_client_installments WHERE account_id=$1", [account.id]
       );
-      if (locked.revoked || Number(balance.pending) || Number(amount) > Number(locked.total) - Number(balance.paid)) {
+      if (locked.revoked || Number(amount) > Number(locked.total) - Number(balance.reserved)) {
         await db.query("ROLLBACK");
-        return send(409, { error: "Vérifiez le solde et attendez la confirmation du versement en cours." });
+        return send(409, { error: "Ce montant dépasse le solde disponible après prise en compte des versements en cours." });
       }
       await db.query("INSERT INTO believe_client_installments(id,account_id,amount) VALUES($1,$2,$3)", [id, account.id, amount]);
       await db.query("COMMIT");
