@@ -33,6 +33,8 @@
   progress{display:block;width:100%;accent-color:#178b43}
   .totals span{flex:1;background:#ebf2ff;padding:10px;border-radius:8px}
   #details button,td button{margin:4px}
+  .total-editor{max-width:28rem;margin:12px 0;padding:16px;background:#f5f7fb;border:1px solid #e4eaf4;border-radius:12px}
+  .total-editor .cancel{background:#e4eaf4;color:#142343}
 </style>
 <header><a href="/rendez-vous/admin/">Retour à l’administration</a></header>
 <main>
@@ -183,13 +185,38 @@
       item.append(account.history?.length ? history : textNode("p", "Aucun versement enregistré."));
       const edit = document.createElement("button");
       edit.textContent = "Modifier le total";
+      edit.type = "button";
+      const editor = document.createElement("form");
+      editor.className = "total-editor";
+      editor.hidden = true;
+      editor.innerHTML = '<label for="edited-total">Nouveau montant total en CDF</label><input id="edited-total" type="number" min="1" max="999999999999" step="1" required><button>Enregistrer</button> <button type="button" class="cancel">Annuler</button><p role="status"></p>';
+      const input = editor.querySelector("input");
+      const save = editor.querySelector("button");
+      const message = editor.querySelector("p");
       edit.onclick = () => {
-        const total = prompt("Nouveau montant total en CDF", account.total);
-        if (total === null) return;
-        run(async () => {
-          await request({ accountId: account.id, action: "total", total: total.trim() });
+        input.value = account.total;
+        message.textContent = "";
+        editor.hidden = false;
+        input.focus();
+      };
+      editor.querySelector(".cancel").onclick = () => {
+        editor.hidden = true;
+        edit.focus();
+      };
+      editor.onsubmit = async event => {
+        event.preventDefault();
+        save.disabled = true;
+        message.textContent = "Enregistrement…";
+        try {
+          await request({ accountId: account.id, action: "total", total: input.value });
           await load();
-        });
+          q("notice").textContent = "Montant total mis à jour.";
+          q("details").focus();
+        } catch (error) {
+          message.textContent = error.message;
+        } finally {
+          save.disabled = false;
+        }
       };
       const adjust = document.createElement("button");
       adjust.textContent = "Valider un versement manuel";
@@ -203,7 +230,7 @@
           await load();
         });
       };
-      item.append(edit, adjust);
+      item.append(edit, adjust, editor);
       if (account.revoked) item.append(" · Clé révoquée");
       else {
         const button = document.createElement("button");
