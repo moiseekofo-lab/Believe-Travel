@@ -40,7 +40,6 @@
   #history{padding:0;list-style:none;margin:8px 0 0}
   #history li{margin-top:6px;padding:8px;background:#f2f4f9;border-radius:8px;overflow-wrap:anywhere}
   .payment-action{display:block;width:100%;border:0;border-radius:999px;background:#0757d6;font-weight:700}
-  .appointment{display:block;text-decoration:none;color:#0757d6;font-weight:700}
   #payment{margin-top:12px}
   @media(max-width:540px){
     body{padding:16px 12px}
@@ -73,8 +72,6 @@
       <progress id="progress" max="100" value="0" aria-label="Pourcentage payé"></progress>
     </div>
     <div class="account-card"><h2>Paiements enregistrés</h2><p id="empty-history">Aucun versement enregistré.</p><ul id="history"></ul></div>
-    <div class="account-card"><h2>Mon rendez-vous</h2><a class="appointment" href="/rendez-vous/">Réserver un rendez-vous ›</a></div>
-    <div class="account-card"><h2>Notifications</h2><p id="account-status"></p></div>
     <button id="open-payment" class="payment-action" type="button" aria-controls="payment" aria-expanded="false">Faire un versement</button>
     <form id="payment" class="account-card" hidden>
       <label for="amount">Montant du versement en CDF</label>
@@ -158,10 +155,10 @@
       return item;
     }));
     const recentPending = visibleInstallments.some(row => row.status === "PENDING");
-    q("account-status").textContent = recentPending ? "Versement en attente de confirmation."
-      : pending ? "Vérification en cours auprès de PawaPay."
-      : canPay ? "Un solde reste à régler." : "Payé intégralement.";
-    if (!submittingPayment) q("notice").textContent = "";
+    if (!submittingPayment) {
+      q("notice").textContent = recentPending ? "Versement en attente de confirmation."
+        : pending ? "Vérification en cours auprès de PawaPay." : "";
+    }
   }
 
   async function run(button, action) {
