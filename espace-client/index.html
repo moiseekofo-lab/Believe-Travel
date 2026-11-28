@@ -21,6 +21,27 @@
   #login button{left:21%;top:87%;width:58%;height:5.5%;min-height:32px;border:0;background:transparent}
   #login :is(input,button):focus-visible{outline:2px solid #1760cc;outline-offset:2px}
   #login button:disabled{background:#e3e3e380;cursor:wait}
+  [hidden]{display:none!important}
+  .account-header,.progress-label{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .account-header img{width:54px;height:54px;object-fit:contain}
+  .account-header strong,.amounts strong,#percent{color:#0757d6}
+  .account-header details{margin-left:auto;text-align:right}
+  .account-header summary{cursor:pointer;font-size:.85rem}
+  .account-header button{margin-top:6px}
+  .account-card{margin:14px 0;padding:14px;border:1px solid #e3eaf5;border-radius:16px;box-shadow:0 3px 10px #14234308}
+  .account-card h2,.account-card p{margin:0 0 6px}
+  .account-card h2{font-size:1.05rem}
+  .welcome{background:#f2f4f9}.case-card{background:#e8f1ff}
+  .amounts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0}
+  .amounts div{background:#e8f1ff;border-radius:10px;padding:8px 4px;text-align:center;font-size:.78rem}
+  .amounts div:nth-child(2){background:#e8f8d7}
+  .amounts strong{display:block;font-size:clamp(.8rem,3vw,1.05rem);overflow-wrap:anywhere}
+  #progress{width:100%;accent-color:#0757d6}
+  #history{padding:0;list-style:none;margin:8px 0 0}
+  #history li{margin-top:6px;padding:8px;background:#f2f4f9;border-radius:8px;overflow-wrap:anywhere}
+  .payment-action{display:block;width:100%;border:0;border-radius:999px;background:#0757d6;font-weight:700}
+  .appointment{display:block;text-decoration:none;color:#0757d6;font-weight:700}
+  #payment{margin-top:12px}
   @media(max-width:540px){
     body{padding:16px 12px}
     main{padding:12px}
@@ -34,20 +55,34 @@
     <button><span class="sr-only">Accéder à mon dossier</span></button>
   </form>
   <section id="account" hidden>
-    <h2 id="name"></h2>
-    <p id="service"></p>
-    <p id="balance"></p>
-    <p><progress id="progress" max="100" value="0" aria-label="Pourcentage payé"></progress> <span id="percent"></span></p>
-    <ul id="history"></ul>
-    <form id="payment">
+    <header class="account-header">
+      <img src="/assets/believe-travel-logo-cutout.png" alt="Believe Travel" width="54" height="54">
+      <strong>Espace client RDC</strong>
+      <details><summary>Menu</summary><button id="refresh" type="button">Actualiser le solde</button> <button id="logout" type="button">Se déconnecter</button></details>
+    </header>
+    <div class="account-card welcome"><h2 id="name"></h2></div>
+    <div class="account-card case-card"><h2>Mon dossier</h2><p id="service"></p></div>
+    <div class="account-card">
+      <h2>Paiement</h2>
+      <div class="amounts">
+        <div>Montant total<strong id="total"></strong></div>
+        <div>Déjà versé<strong id="paid"></strong></div>
+        <div>Reste à payer<strong id="remaining"></strong></div>
+      </div>
+      <div class="progress-label"><span>Progression du paiement</span><strong id="percent"></strong></div>
+      <progress id="progress" max="100" value="0" aria-label="Pourcentage payé"></progress>
+    </div>
+    <div class="account-card"><h2>Paiements enregistrés</h2><p id="empty-history">Aucun versement enregistré.</p><ul id="history"></ul></div>
+    <div class="account-card"><h2>Mon rendez-vous</h2><a class="appointment" href="/rendez-vous/">Réserver un rendez-vous ›</a></div>
+    <div class="account-card"><h2>Notifications</h2><p id="account-status"></p></div>
+    <button id="open-payment" class="payment-action" type="button" aria-controls="payment" aria-expanded="false">Faire un versement</button>
+    <form id="payment" class="account-card" hidden>
       <label for="amount">Montant du versement en CDF</label>
       <input type="number" id="amount" min="1" step="1" required>
       <label for="phone">Numéro Mobile Money</label>
       <input type="tel" id="phone" autocomplete="tel" required>
       <button>Continuer vers Mobile Money</button>
     </form>
-    <button id="refresh" type="button">Actualiser le solde</button>
-    <button id="logout" type="button">Se déconnecter</button>
   </section>
   <p id="notice" role="status"></p>
 </main>
@@ -85,15 +120,23 @@
     q("key").value = "";
     q("login").hidden = true;
     q("account").hidden = false;
-    q("name").textContent = data.name;
+    q("name").textContent = "Bienvenue, " + data.name;
     q("service").textContent = data.service || "";
-    q("balance").textContent = `Total ${money(data.total)} · Payé ${money(data.paid)} · Reste ${money(data.remaining)}`;
+    q("total").textContent = money(data.total);
+    q("paid").textContent = money(data.paid);
+    q("remaining").textContent = money(data.remaining);
     const percent = data.percent ?? 100 * Number(data.paid) / Number(data.total);
     q("progress").value = percent;
     q("percent").textContent = percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " % payé";
     const pending = data.installments.some(row => row.status === "PENDING");
-    q("payment").hidden = pending || data.remaining === 0;
+    const canPay = !pending && Number(data.remaining) > 0;
+    q("open-payment").hidden = !canPay;
+    if (!canPay) {
+      q("payment").hidden = true;
+      q("open-payment").setAttribute("aria-expanded", "false");
+    }
     q("amount").max = data.remaining;
+    q("empty-history").hidden = data.installments.length > 0;
     q("history").replaceChildren(...data.installments.map(row => {
       const item = document.createElement("li");
       const labels = { PENDING: "En attente", CONFIRMED: "Confirmé", FAILED: "Échoué" };
@@ -107,9 +150,8 @@
       }
       return item;
     }));
-    if (!submittingPayment) {
-      q("notice").textContent = pending ? "Versement en attente de confirmation." : data.remaining === 0 ? "Payé intégralement" : "";
-    }
+    q("account-status").textContent = pending ? "Versement en attente de confirmation." : canPay ? "Un solde reste à régler." : "Payé intégralement.";
+    if (!submittingPayment) q("notice").textContent = "";
   }
 
   async function run(button, action) {
@@ -125,6 +167,12 @@
     run(q("login").querySelector("button"), load);
   };
   q("refresh").onclick = () => run(q("refresh"), load);
+  q("open-payment").onclick = () => {
+    const form = q("payment");
+    form.hidden = !form.hidden;
+    q("open-payment").setAttribute("aria-expanded", String(!form.hidden));
+    if (!form.hidden) q("amount").focus();
+  };
   q("logout").onclick = () => {
     sessionStorage.removeItem("believeClientKey");
     location.reload();
