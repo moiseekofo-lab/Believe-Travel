@@ -52,7 +52,15 @@
   <label for="contact">Numéro de contact</label>
   <input id="contact" type="tel" required>
   <label for="service">Service</label>
-  <input id="service" maxlength="160" required>
+  <select id="service" required style="display:block;width:100%;box-sizing:border-box;margin:4px 0 14px">
+    <option value="" selected disabled>Choisir un service</option>
+    <option>Bourse d’étude Portugal 2027</option>
+    <option>Étude de la langue allemande</option>
+    <option>Étude universitaire Portugal 2027 - 2028</option>
+    <option>Visa Touristique</option>
+    <option>Visa de Travail Canada</option>
+    <option>Visa Schengen</option>
+  </select>
   <label for="total">Montant total des frais en CDF</label>
   <input id="total" type="number" min="1" max="999999999999" step="1" required>
   <button>Créer une clé</button>
