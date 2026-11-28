@@ -96,6 +96,8 @@
     <section id="payment-page" hidden>
     <h2>Faire un versement</h2>
     <p id="payment-remaining"></p>
+    <p id="payment-pending" hidden>Un versement est déjà en cours. Vous pourrez en lancer un autre après sa confirmation ou son échec.</p>
+    <a id="resume-payment" class="payment-action" hidden>Reprendre le versement</a>
     <form id="payment" class="account-card" hidden>
       <label for="amount">Montant du versement en CDF</label>
       <input type="number" id="amount" min="1" step="1" required>
@@ -174,7 +176,13 @@
     q("percent").textContent = percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " % payé";
     const pending = data.installments.some(row => row.status === "PENDING");
     canPay = !pending && Number(data.remaining) > 0;
-    q("open-payment").hidden = !canPay;
+    q("open-payment").hidden = Number(data.remaining) <= 0;
+    q("payment-pending").hidden = !pending;
+    const resumeUrl = data.installments.find(row => row.status === "PENDING" && row.resume_url)?.resume_url;
+    const resumePayment = q("resume-payment");
+    resumePayment.hidden = !resumeUrl;
+    if (resumeUrl) resumePayment.href = resumeUrl;
+    else resumePayment.removeAttribute("href");
     renderPage();
     q("payment-remaining").textContent = "Reste à payer : " + money(data.remaining);
     q("amount").max = data.remaining;
