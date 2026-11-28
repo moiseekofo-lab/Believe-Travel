@@ -20,25 +20,36 @@ async function load(){const key=q('#key').value.trim()||sessionStorage.getItem('
 q('#connect').onclick=()=>sessionStorage.getItem('believeAdminKey')?disconnect():load();q('#key').addEventListener('keydown',event=>{if(event.key==='Enter')load()});q('#withdraw').onclick=()=>{q('#withdrawError').textContent='';q('#withdrawModal').hidden=false};q('#closeWithdraw').onclick=()=>q('#withdrawModal').hidden=true;
 q('#withdrawForm').onsubmit=async event=>{event.preventDefault();const key=sessionStorage.getItem('believeAdminKey');const button=event.currentTarget.querySelector('.confirm-withdraw');const data=Object.fromEntries(new FormData(event.currentTarget));if(!confirm(`Confirmer le transfert réel de ${Number(data.amount).toLocaleString('fr-FR')} CDF vers ${data.phone} ?`))return;button.disabled=true;button.textContent='Transfert en cours…';q('#withdrawError').textContent='';try{const response=await fetch(API+'/api/admin/payouts',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error||'Retrait impossible.');q('#withdrawModal').hidden=true;event.currentTarget.reset();await load();alert('Retrait envoyé à pawaPay. Suivez sa confirmation dans le tableau de bord.')}catch(error){q('#withdrawError').textContent=error.message}finally{button.disabled=false;button.textContent='Confirmer le retrait'}};
 if(sessionStorage.getItem('believeAdminKey'))load();else warmServer();
-const clientPanel = document.createElement('details');
+const clientPanel = document.createElement('section');
 clientPanel.className = 'card';
 clientPanel.style.marginTop = '16px';
-const clientSummary = document.createElement('summary');
-clientSummary.textContent = 'Gérer les clés clients';
-clientSummary.style.cursor = 'pointer';
-clientPanel.append(clientSummary);
-clientPanel.addEventListener('toggle', () => {
-  if (!clientPanel.open || !sessionStorage.getItem('believeAdminKey') || clientPanel.querySelector('iframe')) return;
+const clientButton = document.createElement('button');
+clientButton.type = 'button';
+clientButton.className = 'withdraw';
+clientButton.style.cssText = 'width:auto;margin:0';
+clientButton.textContent = 'Gérer les clés clients';
+clientButton.setAttribute('aria-expanded', 'false');
+clientButton.setAttribute('aria-controls', 'client-content');
+const clientContent = document.createElement('div');
+clientContent.id = 'client-content';
+clientContent.hidden = true;
+clientPanel.append(clientButton, clientContent);
+clientButton.addEventListener('click', () => {
+  if (!sessionStorage.getItem('believeAdminKey')) return;
+  clientContent.hidden = !clientContent.hidden;
+  clientButton.setAttribute('aria-expanded', String(!clientContent.hidden));
+  if (clientContent.hidden || clientContent.querySelector('iframe')) return;
   const frame = document.createElement('iframe');
   frame.title = 'Gestion des clés clients';
   frame.src = '/rendez-vous/admin/clients.html?embedded=1';
   frame.style.cssText = 'display:block;width:100%;height: min(600px, 75vh);border:0';
-  clientPanel.append(frame);
+  clientContent.append(frame);
 });
 q('#connect').addEventListener('click', () => {
   if (sessionStorage.getItem('believeAdminKey')) return;
-  clientPanel.open = false;
-  clientPanel.querySelector('iframe')?.remove();
+  clientContent.hidden = true;
+  clientButton.setAttribute('aria-expanded', 'false');
+  clientContent.replaceChildren();
 });
 q('main').append(clientPanel);
 </script></body></html>
