@@ -55,6 +55,8 @@
   const api = "https://believe-travel-payments.onrender.com/api/client";
   const q = id => document.getElementById(id);
   let key = sessionStorage.getItem("believeClientKey") || "";
+  let balanceRequest;
+  let submittingPayment = false;
   const money = value => Number(value).toLocaleString("fr-FR") + " CDF";
 
   async function request(path, options = {}) {
@@ -62,12 +64,22 @@
       ...options, headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }
     });
     const data = await response.json();
-    if (response.status === 401) sessionStorage.removeItem("believeClientKey");
+    if (response.status === 401) {
+      key = "";
+      sessionStorage.removeItem("believeClientKey");
+      q("account").hidden = true;
+      q("login").hidden = false;
+    }
     if (!response.ok) throw new Error(data.error || "Service indisponible.");
     return data;
   }
 
-  async function load() {
+  function load() {
+    if (!balanceRequest) balanceRequest = updateBalance().finally(() => { balanceRequest = null; });
+    return balanceRequest;
+  }
+
+  async function updateBalance() {
     const data = await request("/account");
     sessionStorage.setItem("believeClientKey", key);
     q("key").value = "";
@@ -95,7 +107,9 @@
       }
       return item;
     }));
-    q("notice").textContent = pending ? "Versement en attente de confirmation." : data.remaining === 0 ? "Payé intégralement" : "";
+    if (!submittingPayment) {
+      q("notice").textContent = pending ? "Versement en attente de confirmation." : data.remaining === 0 ? "Payé intégralement" : "";
+    }
   }
 
   async function run(button, action) {
@@ -118,12 +132,28 @@
   q("payment").onsubmit = event => {
     event.preventDefault();
     run(q("payment").querySelector("button"), async () => {
-      const { redirectUrl } = await request("/installments", {
-        method: "POST", body: JSON.stringify({ amount: q("amount").value, phone: q("phone").value })
-      });
-      location.assign(redirectUrl);
+      submittingPayment = true;
+      try {
+        const { redirectUrl } = await request("/installments", {
+          method: "POST", body: JSON.stringify({ amount: q("amount").value, phone: q("phone").value })
+        });
+        location.assign(redirectUrl);
+      } finally {
+        submittingPayment = false;
+      }
     });
   };
+  function refreshVisibleBalance() {
+    if (!key || q("account").hidden || document.hidden || submittingPayment) return;
+    load().catch(error => {
+      if (!key) q("notice").textContent = error.message;
+    });
+  }
+  setInterval(refreshVisibleBalance, 15000);
+  document.addEventListener("visibilitychange", refreshVisibleBalance);
+  window.addEventListener("pageshow", event => {
+    if (event.persisted) refreshVisibleBalance();
+  });
   if (key) load().catch(error => { q("notice").textContent = error.message; });
 </script>
 </html>
