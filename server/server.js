@@ -142,7 +142,8 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname.startsWith("/api/client/") || url.pathname === "/api/admin/clients") {
     const send = (status, body) => sendJson(res, status, body, corsOrigin);
     try {
-      return await clientPayments({ req, path: url.pathname, pool, send, readJson, adminAuthorized, normalizePhone, pawaPay, site: PUBLIC_SITE_URL });
+      return await clientPayments({ req, path: url.pathname, pool, send, readJson, adminAuthorized, normalizePhone, pawaPay, site: PUBLIC_SITE_URL,
+        keySecret: process.env.CLIENT_KEY_ENCRYPTION_SECRET || BELIEVE_ADMIN_KEY });
     } catch (error) {
       console.error("client-payments", error);
       return send(502, { error: "Service momentanément indisponible. Actualisez le solde avant de réessayer." });

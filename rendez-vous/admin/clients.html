@@ -70,6 +70,7 @@
     <input id="query" type="search" placeholder="Rechercher un client…" aria-label="Rechercher un client">
     <select id="service-filter" aria-label="Filtrer par service"><option value="">Tous les services</option></select>
     <select id="status-filter" aria-label="Filtrer par statut"><option value="">Tous les statuts</option><option>En cours</option><option>Payé</option><option>Clé révoquée</option></select>
+    <label><input id="show-archived" type="checkbox" style="display:inline;width:auto"> Clients archivés</label>
   </div>
   <div class="scroll"><table>
     <thead><tr><th>#</th><th>Nom complet</th><th>Référence client</th><th>Service</th><th>Montant total</th><th>Payé</th><th>Reste</th><th>Statut</th><th>Actions</th></tr></thead>
@@ -92,7 +93,13 @@
     document.title = "Fiche client | Believe Travel";
   }
   const money = value => Number(value).toLocaleString("fr-FR") + " CDF";
-  const status = account => account.revoked ? "Clé révoquée" : Number(account.paid) >= Number(account.total) ? "Payé" : "En cours";
+  const status = account => account.archived ? "Archivé" : account.revoked ? "Clé révoquée" : Number(account.paid) >= Number(account.total) ? "Payé" : "En cours";
+  function showKey(key) {
+    q("client-key").value = key;
+    q("result").hidden = false;
+    q("client-key").focus();
+    q("client-key").select();
+  }
   const button = (label, action) => {
     const node = document.createElement("button");
     node.type = "button";
@@ -151,6 +158,7 @@
     const service = q("service-filter").value;
     const state = q("status-filter").value;
     const visible = accounts.filter(account =>
+      Boolean(account.archived) === q("show-archived").checked &&
       (!service || account.service === service) && (!state || status(account) === state) &&
       [account.name, account.contact, account.service, account.id].some(value => String(value ?? "").toLocaleLowerCase("fr").includes(query))
     );
@@ -172,11 +180,11 @@
       return row;
     }));
   }
-  function addActionDialog(container, title, fields, submitLabel, submit, success) {
+  function addActionDialog(container, title, fields, submitLabel, submit, success, explanation = "") {
     const dialog = document.createElement("dialog");
     dialog.className = "total-dialog";
     const heading = textNode("h2", title);
-    heading.id = fields ? "adjust-title" : "revoke-title";
+    heading.id = "action-" + crypto.randomUUID();
     dialog.setAttribute("aria-labelledby", heading.id);
     const form = document.createElement("form");
     form.className = "total-editor";
@@ -186,7 +194,7 @@
     cancel.className = "cancel";
     const message = document.createElement("p");
     message.setAttribute("role", "status");
-    if (!fields) form.append(textNode("p", "Le client ne pourra plus accéder à son dossier avec cette clé."));
+    if (explanation) form.append(textNode("p", explanation));
     form.append(save, cancel, message);
     dialog.append(heading, form);
     container.append(button(title, () => {
@@ -202,11 +210,14 @@
       save.disabled = cancel.disabled = true;
       message.textContent = "Enregistrement…";
       try {
-        await submit(Object.fromEntries(new FormData(form)));
+        const result = await submit(Object.fromEntries(new FormData(form)));
         dialog.close();
         await load();
         q("notice").textContent = success;
         if (!q("details").hidden) q("details").focus();
+        q("client-key").value = "";
+        q("result").hidden = true;
+        if (result?.key) showKey(result.key);
       } catch (error) {
         (dialog.open ? message : q("notice")).textContent = error.message;
       } finally {
@@ -240,6 +251,22 @@
         history.querySelector("tbody").append(payment);
       }
       item.append(account.history?.length ? history : textNode("p", "Aucun versement enregistré."));
+      if (account.archived) {
+        addActionDialog(item, "Restaurer le client", "", "Restaurer",
+          () => request({ accountId: account.id, action: "restore" }), "Client restauré.",
+          "Le dossier réapparaîtra dans la liste. Générez une nouvelle clé pour rétablir l’accès du client.");
+        return;
+      }
+      if (!account.revoked) item.append(button("Voir la clé", () => run(async () => {
+        const { key } = await request({ accountId: account.id, action: "reveal" });
+        showKey(key);
+      })));
+      addActionDialog(item, "Générer une nouvelle clé", "", "Générer",
+        () => request({ accountId: account.id, action: "rotate" }), "Nouvelle clé générée.",
+        "La nouvelle clé remplace l’ancienne. Transmettez-la en privé au client.");
+      addActionDialog(item, "Archiver le client", "", "Archiver",
+        () => request({ accountId: account.id, action: "archive" }), "Client archivé.",
+        "Le client sera retiré de la liste active et sa clé sera révoquée. Son historique de paiements sera conservé.");
       const edit = document.createElement("button");
       edit.textContent = "Modifier le total";
       edit.type = "button";
@@ -287,7 +314,8 @@
         "Versement manuel enregistré.");
       if (account.revoked) item.append(" · Clé révoquée");
       else addActionDialog(item, "Révoquer la clé", "", "Confirmer la révocation",
-        () => request({ revoke: account.id }), "Clé révoquée.");
+        () => request({ revoke: account.id }), "Clé révoquée.",
+        "Le client ne pourra plus accéder à son dossier avec cette clé.");
   }
   const createDialog = q("create-dialog");
   q("new-client").onclick = () => {
@@ -302,6 +330,10 @@
   q("query").oninput = render;
   q("service-filter").onchange = render;
   q("status-filter").onchange = render;
+  q("show-archived").onchange = () => {
+    q("status-filter").value = "";
+    render();
+  };
   q("create").onsubmit = async event => {
     event.preventDefault();
     const button = q("create").querySelector("button");
