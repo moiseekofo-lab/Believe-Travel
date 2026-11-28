@@ -156,8 +156,7 @@
     }));
     const recentPending = visibleInstallments.some(row => row.status === "PENDING");
     if (!submittingPayment) {
-      q("notice").textContent = recentPending ? "Versement en attente de confirmation."
-        : pending ? "Vérification en cours auprès de PawaPay." : "";
+      q("notice").textContent = recentPending ? "Versement en attente de confirmation." : "";
     }
   }
 
