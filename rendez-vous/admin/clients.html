@@ -159,6 +159,48 @@
     q("details").replaceChildren();
     if (selected) renderDetails(selected);
   }
+  function addActionDialog(container, title, fields, submitLabel, submit, success) {
+    const dialog = document.createElement("dialog");
+    dialog.className = "total-dialog";
+    const heading = textNode("h2", title);
+    heading.id = fields ? "adjust-title" : "revoke-title";
+    dialog.setAttribute("aria-labelledby", heading.id);
+    const form = document.createElement("form");
+    form.className = "total-editor";
+    form.innerHTML = fields;
+    const save = textNode("button", submitLabel);
+    const cancel = button("Annuler", () => dialog.close());
+    cancel.className = "cancel";
+    const message = document.createElement("p");
+    message.setAttribute("role", "status");
+    if (!fields) form.append(textNode("p", "Le client ne pourra plus accéder à son dossier avec cette clé."));
+    form.append(save, cancel, message);
+    dialog.append(heading, form);
+    container.append(button(title, () => {
+      form.reset();
+      message.textContent = "";
+      dialog.showModal();
+    }), dialog);
+    dialog.addEventListener("cancel", event => {
+      if (save.disabled) event.preventDefault();
+    });
+    form.onsubmit = async event => {
+      event.preventDefault();
+      save.disabled = cancel.disabled = true;
+      message.textContent = "Enregistrement…";
+      try {
+        await submit(Object.fromEntries(new FormData(form)));
+        dialog.close();
+        await load();
+        q("notice").textContent = success;
+        if (!q("details").hidden) q("details").focus();
+      } catch (error) {
+        (dialog.open ? message : q("notice")).textContent = error.message;
+      } finally {
+        save.disabled = cancel.disabled = false;
+      }
+    };
+  }
   function renderDetails(account) {
       const item = q("details");
       item.tabIndex = -1;
@@ -225,31 +267,14 @@
           save.disabled = false;
         }
       };
-      const adjust = document.createElement("button");
-      adjust.textContent = "Valider un versement manuel";
-      adjust.onclick = () => {
-        const amount = prompt("Montant du versement manuel en CDF");
-        if (amount === null) return;
-        const reference = prompt("Référence du versement manuel");
-        if (reference === null || !confirm(`Enregistrer ${amount} CDF pour ${account.name} ?`)) return;
-        run(async () => {
-          await request({ accountId: account.id, action: "adjust", amount: amount.trim(), reference });
-          await load();
-        });
-      };
-      item.append(edit, adjust, dialog);
+      item.append(edit, dialog);
+      addActionDialog(item, "Valider un versement manuel",
+        '<label for="manual-amount">Montant en CDF</label><input id="manual-amount" name="amount" type="number" min="1" max="999999999999" step="1" required autofocus><label for="manual-reference">Référence du versement</label><input id="manual-reference" name="reference" required maxlength="160">',
+        "Enregistrer", fields => request({ accountId: account.id, action: "adjust", ...fields }),
+        "Versement manuel enregistré.");
       if (account.revoked) item.append(" · Clé révoquée");
-      else {
-        const button = document.createElement("button");
-        button.textContent = "Révoquer la clé";
-        button.onclick = () => {
-          if (confirm("Révoquer la clé de ce client ?")) run(async () => {
-            await request({ revoke: account.id });
-            await load();
-          });
-        };
-        item.append(button);
-      }
+      else addActionDialog(item, "Révoquer la clé", "", "Confirmer la révocation",
+        () => request({ revoke: account.id }), "Clé révoquée.");
   }
   q("new-client").onclick = () => {
     const form = q("create");
