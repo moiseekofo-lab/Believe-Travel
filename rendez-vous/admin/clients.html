@@ -38,9 +38,9 @@
   .total-dialog h2{margin:0 0 16px}
   .total-editor .cancel{background:#e4eaf4;color:#142343}
 </style>
-<header><a href="/rendez-vous/admin/">Retour à l’administration</a></header>
+<header><a id="back" href="/rendez-vous/admin/">Retour à l’administration</a></header>
 <main>
-<div class="heading">
+<div class="heading" id="list-heading">
   <div><h1>Gestion des clients</h1><p>Consultez les dossiers et suivez les paiements échelonnés.</p></div>
   <button id="new-client" type="button" aria-controls="create" aria-expanded="false" disabled>+ Nouveau client</button>
 </div>
@@ -78,7 +78,14 @@
   const q = id => document.getElementById(id);
   const api = "https://believe-travel-payments.onrender.com/api/admin/clients";
   let accounts = [];
-  let selectedId = null;
+  const clientId = new URLSearchParams(location.search).get("client");
+  if (clientId !== null) {
+    q("list-heading").hidden = true;
+    q("list-heading").style.display = "none";
+    q("back").href = "/rendez-vous/admin/clients.html";
+    q("back").textContent = "Retour à la liste des clients";
+    document.title = "Fiche client | Believe Travel";
+  }
   const money = value => Number(value).toLocaleString("fr-FR") + " CDF";
   const status = account => account.revoked ? "Clé révoquée" : Number(account.paid) >= Number(account.total) ? "Payé" : "En cours";
   const button = (label, action) => {
@@ -117,6 +124,15 @@
   }
   async function load() {
     ({ accounts } = await request());
+    if (clientId !== null) {
+      const account = accounts.find(entry => entry.id === clientId);
+      const details = q("details");
+      details.replaceChildren();
+      details.hidden = false;
+      if (account) renderDetails(account);
+      else details.append(textNode("p", "Fiche client introuvable."));
+      return;
+    }
     const filter = q("service-filter");
     const service = filter.value;
     filter.replaceChildren(new Option("Tous les services", ""), ...[...new Set(accounts.map(account => account.service).filter(Boolean))].sort().map(value => new Option(value, value)));
@@ -133,12 +149,9 @@
       (!service || account.service === service) && (!state || status(account) === state) &&
       [account.name, account.contact, account.service, account.id].some(value => String(value ?? "").toLocaleLowerCase("fr").includes(query))
     );
-    const selected = visible.find(account => account.id === selectedId) || visible[0];
-    selectedId = selected?.id ?? null;
     q("empty").hidden = visible.length > 0;
     q("accounts").replaceChildren(...visible.map((account, index) => {
       const row = document.createElement("tr");
-      if (account.id === selectedId) row.setAttribute("aria-selected", "true");
       const paid = Number(account.paid ?? 0);
       row.append(...[index + 1, account.name, account.id.slice(0, 8).toUpperCase(), account.service || "—",
         money(account.total), money(paid), money(Number(account.total) - paid)].map(value => textNode("td", value)));
@@ -148,16 +161,11 @@
       stateCell.append(badge);
       const actions = document.createElement("td");
       actions.append(button("Voir", () => {
-        selectedId = account.id;
-        render();
-        q("details").focus();
+        location.assign("?client=" + encodeURIComponent(account.id));
       }));
       row.append(stateCell, actions);
       return row;
     }));
-    q("details").hidden = !selected;
-    q("details").replaceChildren();
-    if (selected) renderDetails(selected);
   }
   function addActionDialog(container, title, fields, submitLabel, submit, success) {
     const dialog = document.createElement("dialog");
