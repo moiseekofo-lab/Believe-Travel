@@ -17,10 +17,29 @@
   #accounts{padding:0;list-style:none}
   li button{margin:4px 8px 4px 0}
   li{overflow-wrap:anywhere}
+  .heading,.filters,.totals{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .heading h1{margin-bottom:0}.heading p{margin-top:4px}
+  .table-wrap,#details{background:white;border:1px solid #e4eaf4;border-radius:14px;padding:14px;margin-bottom:16px}
+  .scroll{overflow:auto}
+  table{border-collapse:collapse;width:100%;text-align:left;white-space:nowrap}
+  th,td{padding:12px;border-bottom:1px solid #e4eaf4}
+  th{background:#f5f7fb}
+  tr[aria-selected=true]{background:#e4efff}
+  .filters input,.filters select{flex:1 1 180px;margin:0 0 12px}
+  select{font:inherit;padding:10px;border:1px solid #c7d2e4;border-radius:8px;background:white}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;background:#fff0c3;color:#654500}
+  .badge.paid{background:#dcf5e5;color:#075324}
+  .badge.revoked{background:#f2e8e8;color:#7b2323}
+  progress{display:block;width:100%;accent-color:#178b43}
+  .totals span{flex:1;background:#ebf2ff;padding:10px;border-radius:8px}
+  #details button,td button{margin:4px}
 </style>
 <header><a href="/rendez-vous/admin/">Retour à l’administration</a></header>
 <main>
-<h1>Gérer les clés clients</h1>
+<div class="heading">
+  <div><h1>Gestion des clients</h1><p>Consultez les dossiers et suivez les paiements échelonnés.</p></div>
+  <button id="new-client" type="button" aria-controls="create" aria-expanded="false" disabled>+ Nouveau client</button>
+</div>
 <form id="create" hidden>
   <label for="name">Nom complet du client</label>
   <input id="name" required maxlength="120">
@@ -37,11 +56,39 @@
   <input id="client-key" readonly>
 </div>
 <p id="notice" role="status"></p>
-<ul id="accounts"></ul>
+<section id="dashboard" class="table-wrap" hidden aria-label="Liste des clients">
+  <div class="filters">
+    <input id="query" type="search" placeholder="Rechercher un client…" aria-label="Rechercher un client">
+    <select id="service-filter" aria-label="Filtrer par service"><option value="">Tous les services</option></select>
+    <select id="status-filter" aria-label="Filtrer par statut"><option value="">Tous les statuts</option><option>En cours</option><option>Payé</option><option>Clé révoquée</option></select>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>#</th><th>Nom complet</th><th>Référence client</th><th>Service</th><th>Montant total</th><th>Payé</th><th>Reste</th><th>Statut</th><th>Actions</th></tr></thead>
+    <tbody id="accounts"></tbody>
+  </table></div>
+  <p id="empty" hidden>Aucun client trouvé.</p>
+</section>
+<section id="details" hidden aria-label="Détail des paiements"></section>
 </main>
 <script type="module">
   const q = id => document.getElementById(id);
   const api = "https://believe-travel-payments.onrender.com/api/admin/clients";
+  let accounts = [];
+  let selectedId = null;
+  const money = value => Number(value).toLocaleString("fr-FR") + " CDF";
+  const status = account => account.revoked ? "Clé révoquée" : Number(account.paid) >= Number(account.total) ? "Payé" : "En cours";
+  const button = (label, action) => {
+    const node = document.createElement("button");
+    node.type = "button";
+    node.textContent = label;
+    node.onclick = action;
+    return node;
+  };
+  const textNode = (tag, value) => {
+    const node = document.createElement(tag);
+    node.textContent = value;
+    return node;
+  };
   async function request(body) {
     const key = sessionStorage.getItem("believeAdminKey");
     if (!key) throw new Error("Connectez-vous dans l’administration des paiements.");
@@ -65,23 +112,75 @@
     }
   }
   async function load() {
-    const { accounts } = await request();
-    q("create").hidden = false;
-    q("accounts").replaceChildren(...accounts.map(account => {
-      const item = document.createElement("li");
+    ({ accounts } = await request());
+    const filter = q("service-filter");
+    const service = filter.value;
+    filter.replaceChildren(new Option("Tous les services", ""), ...[...new Set(accounts.map(account => account.service).filter(Boolean))].sort().map(value => new Option(value, value)));
+    if ([...filter.options].some(option => option.value === service)) filter.value = service;
+    q("new-client").disabled = false;
+    q("dashboard").hidden = false;
+    render();
+  }
+  function render() {
+    const query = q("query").value.trim().toLocaleLowerCase("fr");
+    const service = q("service-filter").value;
+    const state = q("status-filter").value;
+    const visible = accounts.filter(account =>
+      (!service || account.service === service) && (!state || status(account) === state) &&
+      [account.name, account.contact, account.service, account.id].some(value => String(value ?? "").toLocaleLowerCase("fr").includes(query))
+    );
+    const selected = visible.find(account => account.id === selectedId) || visible[0];
+    selectedId = selected?.id ?? null;
+    q("empty").hidden = visible.length > 0;
+    q("accounts").replaceChildren(...visible.map((account, index) => {
+      const row = document.createElement("tr");
+      if (account.id === selectedId) row.setAttribute("aria-selected", "true");
+      const paid = Number(account.paid ?? 0);
+      row.append(...[index + 1, account.name, account.id.slice(0, 8).toUpperCase(), account.service || "—",
+        money(account.total), money(paid), money(Number(account.total) - paid)].map(value => textNode("td", value)));
+      const stateCell = document.createElement("td");
+      const badge = textNode("span", status(account));
+      badge.className = "badge " + (account.revoked ? "revoked" : status(account) === "Payé" ? "paid" : "");
+      stateCell.append(badge);
+      const actions = document.createElement("td");
+      actions.append(button("Voir", () => {
+        selectedId = account.id;
+        render();
+        q("details").focus();
+      }));
+      row.append(stateCell, actions);
+      return row;
+    }));
+    q("details").hidden = !selected;
+    q("details").replaceChildren();
+    if (selected) renderDetails(selected);
+  }
+  function renderDetails(account) {
+      const item = q("details");
+      item.tabIndex = -1;
       const total = Number(account.total);
       const paid = Number(account.paid ?? 0);
-      const money = value => Number(value).toLocaleString("fr-FR") + " CDF";
-      item.textContent = [account.name, account.contact, account.service].filter(Boolean).join(" · ");
-      const balance = document.createElement("p");
-      balance.textContent = `Total ${money(total)} · Payé ${money(paid)} · Solde ${money(total - paid)} · ${(100 * paid / total).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %`;
-      item.append(balance);
+      const percent = 100 * paid / total;
+      item.append(textNode("h2", "Paiement · " + account.name), textNode("p", "Montant total : " + money(total)));
+      if (account.contact) item.append(textNode("p", "Contact : " + account.contact));
+      const progress = document.createElement("progress");
+      progress.max = 100;
+      progress.value = percent;
+      progress.setAttribute("aria-label", "Part du total payée");
+      const totals = document.createElement("div");
+      totals.className = "totals";
+      totals.append(textNode("span", "Montant payé : " + money(paid)), textNode("span", "Reste à payer : " + money(total - paid)));
+      item.append(progress, textNode("p", percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " % payé"), totals, textNode("h3", "Historique des paiements"));
+      const history = document.createElement("div");
+      history.className = "scroll";
+      history.innerHTML = "<table><thead><tr><th>Date</th><th>Référence</th><th>Montant</th><th>Statut</th></tr></thead><tbody></tbody></table>";
       for (const entry of account.history ?? []) {
-        const payment = document.createElement("p");
+        const payment = document.createElement("tr");
         const labels = { CONFIRMED: "Confirmé", PENDING: "En attente", FAILED: "Échoué" };
-        payment.textContent = `${new Date(entry.date).toLocaleString("fr-FR")} · ${money(entry.amount)} · ${labels[entry.status]} · Réf. ${entry.reference}`;
-        item.append(payment);
+        payment.append(...[new Date(entry.date).toLocaleString("fr-FR"), entry.reference, money(entry.amount), labels[entry.status] || entry.status].map(value => textNode("td", value)));
+        history.querySelector("tbody").append(payment);
       }
+      item.append(account.history?.length ? history : textNode("p", "Aucun versement enregistré."));
       const edit = document.createElement("button");
       edit.textContent = "Modifier le total";
       edit.onclick = () => {
@@ -117,9 +216,16 @@
         };
         item.append(button);
       }
-      return item;
-    }));
   }
+  q("new-client").onclick = () => {
+    const form = q("create");
+    form.hidden = !form.hidden;
+    q("new-client").setAttribute("aria-expanded", String(!form.hidden));
+    if (!form.hidden) q("name").focus();
+  };
+  q("query").oninput = render;
+  q("service-filter").onchange = render;
+  q("status-filter").onchange = render;
   q("create").onsubmit = async event => {
     event.preventDefault();
     const button = q("create").querySelector("button");
