@@ -2,6 +2,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID }
 
 const digest = key => createHash("sha256").update(key).digest("hex");
 const validAmount = value => /^[1-9]\d{0,11}$/.test(String(value));
+const activeReservation = "status='PENDING' AND created_at > NOW() - INTERVAL '5 minutes'";
 const encryptionKey = secret => createHash("sha256").update("believe-client-key:v1:" + secret).digest();
 
 function encryptKey(key, secret, id) {
@@ -186,11 +187,12 @@ export async function clientPayments({ req, path, pool, send, readJson, adminAut
     );
     await Promise.allSettled(pending.map(({ id }) => refreshInstallment(pool, pawaPay, id)));
     const { rows: installments } = await pool.query(
-      "SELECT amount,status,created_at,COALESCE(manual_reference,id::text) AS reference, CASE WHEN status='PENDING' THEN redirect_url END AS resume_url FROM believe_client_installments WHERE account_id=$1 ORDER BY created_at DESC", [account.id]
+      `SELECT amount,status,created_at,COALESCE(manual_reference,id::text) AS reference,
+       (${activeReservation}) AS reserved FROM believe_client_installments WHERE account_id=$1 ORDER BY created_at DESC`, [account.id]
     );
     const paid = installments.filter(row => row.status === "CONFIRMED").reduce((sum, row) => sum + Number(row.amount), 0);
     return send(200, { name: account.name, service: account.service, total: account.total, paid,
-      remaining: Number(account.total) - paid, percent: 100 * paid / Number(account.total), installments });
+      remaining: Math.max(0, Number(account.total) - paid), percent: 100 * paid / Number(account.total), installments });
   }
   if (path === "/api/client/installments" && req.method === "POST") {
     const body = await readJson(req);
@@ -207,7 +209,8 @@ export async function clientPayments({ req, path, pool, send, readJson, adminAut
       await db.query("BEGIN");
       const { rows: [locked] } = await db.query("SELECT total,revoked FROM believe_client_accounts WHERE id=$1 FOR UPDATE", [account.id]);
       const { rows: [balance] } = await db.query(
-        "SELECT COALESCE(SUM(amount) FILTER (WHERE status IN ('PENDING','CONFIRMED')),0) AS reserved FROM believe_client_installments WHERE account_id=$1", [account.id]
+        `SELECT COALESCE(SUM(amount) FILTER (WHERE status='CONFIRMED' OR (${activeReservation})),0)
+         AS reserved FROM believe_client_installments WHERE account_id=$1`, [account.id]
       );
       if (locked.revoked || Number(amount) > Number(locked.total) - Number(balance.reserved)) {
         await db.query("ROLLBACK");

@@ -175,12 +175,13 @@
     q("progress").value = percent;
     q("percent").textContent = percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " % payé";
     const pending = data.installments.some(row => row.status === "PENDING");
-    const reserved = data.installments.reduce((sum, row) => sum + (row.status === "PENDING" ? Number(row.amount) : 0), 0);
+    const reserved = data.installments.reduce((sum, row) =>
+      sum + ((row.reserved ?? row.status === "PENDING") ? Number(row.amount) : 0), 0);
     const available = Math.max(0, Number(data.remaining) - reserved);
     canPay = available > 0;
     q("open-payment").hidden = Number(data.remaining) <= 0;
-    q("payment-pending").hidden = !pending;
-    q("payment-available").hidden = !pending;
+    q("payment-pending").hidden = reserved === 0;
+    q("payment-available").hidden = reserved === 0;
     q("payment-available").textContent = "Disponible pour un nouveau versement : " + money(available);
     renderPage();
     q("payment-remaining").textContent = "Reste à payer : " + money(data.remaining);
