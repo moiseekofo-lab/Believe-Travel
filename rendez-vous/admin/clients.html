@@ -33,7 +33,9 @@
   progress{display:block;width:100%;accent-color:#178b43}
   .totals span{flex:1;background:#ebf2ff;padding:10px;border-radius:8px}
   #details button,td button{margin:4px}
-  .total-editor{max-width:28rem;margin:12px 0;padding:16px;background:#f5f7fb;border:1px solid #e4eaf4;border-radius:12px}
+  .total-dialog{box-sizing:border-box;width:min(28rem,calc(100% - 32px));padding:24px;color:#142343;background:white;border:1px solid #e4eaf4;border-radius:16px;box-shadow:0 16px 48px #0b173e35}
+  .total-dialog::backdrop{background:#0b173e80}
+  .total-dialog h2{margin:0 0 16px}
   .total-editor .cancel{background:#e4eaf4;color:#142343}
 </style>
 <header><a href="/rendez-vous/admin/">Retour à l’administration</a></header>
@@ -186,9 +188,14 @@
       const edit = document.createElement("button");
       edit.textContent = "Modifier le total";
       edit.type = "button";
+      const dialog = document.createElement("dialog");
+      dialog.className = "total-dialog";
+      dialog.setAttribute("aria-labelledby", "total-dialog-title");
+      dialog.append(textNode("h2", "Modifier le total"));
+      dialog.firstElementChild.id = "total-dialog-title";
       const editor = document.createElement("form");
       editor.className = "total-editor";
-      editor.hidden = true;
+      dialog.append(editor);
       editor.innerHTML = '<label for="edited-total">Nouveau montant total en CDF</label><input id="edited-total" type="number" min="1" max="999999999999" step="1" required><button>Enregistrer</button> <button type="button" class="cancel">Annuler</button><p role="status"></p>';
       const input = editor.querySelector("input");
       const save = editor.querySelector("button");
@@ -196,12 +203,11 @@
       edit.onclick = () => {
         input.value = account.total;
         message.textContent = "";
-        editor.hidden = false;
+        dialog.showModal();
         input.focus();
       };
       editor.querySelector(".cancel").onclick = () => {
-        editor.hidden = true;
-        edit.focus();
+        dialog.close();
       };
       editor.onsubmit = async event => {
         event.preventDefault();
@@ -209,11 +215,12 @@
         message.textContent = "Enregistrement…";
         try {
           await request({ accountId: account.id, action: "total", total: input.value });
+          dialog.close();
           await load();
           q("notice").textContent = "Montant total mis à jour.";
           q("details").focus();
         } catch (error) {
-          message.textContent = error.message;
+          (dialog.open ? message : q("notice")).textContent = error.message;
         } finally {
           save.disabled = false;
         }
@@ -230,7 +237,7 @@
           await load();
         });
       };
-      item.append(edit, adjust, editor);
+      item.append(edit, adjust, dialog);
       if (account.revoked) item.append(" · Clé révoquée");
       else {
         const button = document.createElement("button");
