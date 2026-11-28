@@ -98,7 +98,6 @@
     <p id="payment-remaining"></p>
     <p id="payment-pending" hidden>Une partie du solde est réservée par un versement en cours.</p>
     <p id="payment-available" hidden></p>
-    <a id="resume-payment" class="payment-action" hidden>Reprendre le versement</a>
     <form id="payment" class="account-card" hidden>
       <label for="amount">Montant du versement en CDF</label>
       <input type="number" id="amount" min="1" step="1" required>
@@ -183,11 +182,6 @@
     q("payment-pending").hidden = !pending;
     q("payment-available").hidden = !pending;
     q("payment-available").textContent = "Disponible pour un nouveau versement : " + money(available);
-    const resumeUrl = data.installments.find(row => row.status === "PENDING" && row.resume_url)?.resume_url;
-    const resumePayment = q("resume-payment");
-    resumePayment.hidden = !resumeUrl;
-    if (resumeUrl) resumePayment.href = resumeUrl;
-    else resumePayment.removeAttribute("href");
     renderPage();
     q("payment-remaining").textContent = "Reste à payer : " + money(data.remaining);
     q("amount").max = available;
@@ -218,12 +212,6 @@
         reference.className = "history-ref";
         reference.textContent = "Réf. " + row.reference;
         item.append(reference);
-      }
-      if (row.resume_url) {
-        const resume = document.createElement("a");
-        resume.href = row.resume_url;
-        resume.textContent = "Reprendre le paiement";
-        item.append(resume);
       }
       return item;
     }));
