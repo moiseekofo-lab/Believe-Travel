@@ -40,18 +40,36 @@ export async function initClientPayments(pool) {
     ALTER TABLE believe_client_accounts ADD COLUMN IF NOT EXISTS encrypted_key TEXT;
     ALTER TABLE believe_client_accounts ADD COLUMN IF NOT EXISTS archived BOOLEAN NOT NULL DEFAULT false;
     ALTER TABLE believe_client_installments ADD COLUMN IF NOT EXISTS manual_reference TEXT;
+    CREATE TABLE IF NOT EXISTS believe_discarded_installments (id UUID PRIMARY KEY);
+    WITH discarded AS (
+      DELETE FROM believe_client_installments WHERE status='FAILED' RETURNING id
+    )
+    INSERT INTO believe_discarded_installments(id) SELECT id FROM discarded ON CONFLICT DO NOTHING;
   `);
+}
+
+async function discardInstallment(pool, id) {
+  await pool.query(`
+    WITH discarded AS (
+      DELETE FROM believe_client_installments WHERE id=$1 AND status='PENDING' RETURNING id
+    )
+    INSERT INTO believe_discarded_installments(id) SELECT id FROM discarded ON CONFLICT DO NOTHING
+  `, [id]);
 }
 
 export async function refreshInstallment(pool, pawaPay, id) {
   const { rows: [entry] } = await pool.query(
     "SELECT amount,status FROM believe_client_installments WHERE id=$1", [id]
   );
-  if (!entry) return false;
+  if (!entry) {
+    // Recognize repeated callbacks without keeping the failed payment or polling PawaPay again.
+    const discarded = await pool.query("SELECT id FROM believe_discarded_installments WHERE id=$1", [id]);
+    return discarded.rowCount > 0;
+  }
   if (entry.status !== "PENDING") return true;
   const { data } = await pawaPay(`/deposits/${id}`, { method: "GET" });
   if (data?.status === "FAILED") {
-    await pool.query("UPDATE believe_client_installments SET status='FAILED' WHERE id=$1 AND status='PENDING'", [id]);
+    await discardInstallment(pool, id);
   } else if (data?.status === "COMPLETED" && data.currency === "CDF" && Number(data.amount) === Number(entry.amount)) {
     await pool.query("UPDATE believe_client_installments SET status='CONFIRMED' WHERE id=$1 AND status='PENDING'", [id]);
   }
@@ -209,7 +227,7 @@ export async function clientPayments({ req, path, pool, send, readJson, adminAut
     });
     const redirectUrl = payment.redirectURL || payment.redirectUrl;
     if (payment.status === "REJECTED") {
-      await pool.query("UPDATE believe_client_installments SET status='FAILED' WHERE id=$1 AND status='PENDING'", [id]);
+      await discardInstallment(pool, id);
       return send(422, { error: "Versement refusé par Mobile Money." });
     }
     if (!redirectUrl) return send(502, { error: "Vérifiez le statut du versement dans votre espace." });
