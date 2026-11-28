@@ -109,7 +109,11 @@ function adminAuthorized(req) {
 }
 
 async function believeBalance(client = pool) {
-  const result = await client.query(`SELECT COALESCE((SELECT SUM(amount) FROM believe_payments WHERE status='CONFIRMED'),0)-COALESCE((SELECT SUM(amount) FROM believe_payouts WHERE status IN ('PROCESSING','ENQUEUED','COMPLETED')),0) AS balance`);
+  const result = await client.query(`
+    SELECT COALESCE((SELECT SUM(amount) FROM believe_payments WHERE status='CONFIRMED'),0)
+      + COALESCE((SELECT SUM(amount) FROM believe_client_installments WHERE status='CONFIRMED' AND manual_reference IS NULL),0)
+      - COALESCE((SELECT SUM(amount) FROM believe_payouts WHERE status IN ('PROCESSING','ENQUEUED','COMPLETED')),0) AS balance
+  `);
   return Math.max(0, Number(result.rows[0]?.balance || 0));
 }
 
@@ -281,7 +285,19 @@ const server = http.createServer(async (req, res) => {
     if (!adminAuthorized(req)) return sendJson(res, 401, { error: "Accès refusé" }, corsOrigin);
     if (!pool) return sendJson(res, 503, { error: "Base de données non configurée" }, corsOrigin);
     await expireStalePayments();
-    const result = await pool.query(`SELECT deposit_id AS "depositId",amount::text,currency,status,phone,appointment,provider_transaction_id AS "providerTransactionId",failure_reason AS "failureReason",created_at AS "createdAt",updated_at AS "updatedAt",completed_at AS "completedAt" FROM believe_payments ORDER BY created_at DESC LIMIT 500`);
+    const result = await pool.query(`
+      SELECT deposit_id::text AS "depositId", amount::text, currency, status, phone, appointment,
+        created_at AS "createdAt", NULL::text AS kind
+      FROM believe_payments
+      UNION ALL
+      SELECT COALESCE(i.manual_reference,i.id::text), i.amount::text, 'CDF',
+        CASE WHEN i.manual_reference IS NULL THEN 'CONFIRMED' ELSE 'MANUAL' END,
+        a.contact, jsonb_build_object('nom',a.name), i.created_at,
+        CASE WHEN i.manual_reference IS NULL THEN 'INSTALLMENT' ELSE 'MANUAL' END
+      FROM believe_client_installments i JOIN believe_client_accounts a ON a.id=i.account_id
+      WHERE i.status='CONFIRMED'
+      ORDER BY "createdAt" DESC LIMIT 500
+    `);
     const payouts = await pool.query(`SELECT payout_id AS "payoutId",amount::text,currency,provider,phone,status,provider_transaction_id AS "providerTransactionId",failure_reason AS "failureReason",created_at AS "createdAt",updated_at AS "updatedAt",completed_at AS "completedAt" FROM believe_payouts ORDER BY created_at DESC LIMIT 100`);
     return sendJson(res, 200, { payments: result.rows, payouts: payouts.rows, availableBalance: await believeBalance() }, corsOrigin);
   }
