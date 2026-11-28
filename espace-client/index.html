@@ -24,6 +24,7 @@
   [hidden]{display:none!important}
   .account-header,.progress-label{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .account-header img{width:54px;height:54px;object-fit:contain}
+  .account-header>strong{border-left:1px solid #ccd6e8;padding-left:12px;font-size:clamp(.95rem,4vw,1.35rem)}
   .account-header strong,.amounts strong,#percent{color:#0757d6}
   .account-header details{margin-left:auto;text-align:right}
   .account-header summary{cursor:pointer;font-size:.85rem}
@@ -31,15 +32,25 @@
   .account-card{margin:14px 0;padding:14px;border:1px solid #e3eaf5;border-radius:16px;box-shadow:0 3px 10px #14234308}
   .account-card h2,.account-card p{margin:0 0 6px}
   .account-card h2{font-size:1.05rem}
-  .welcome{background:#f2f4f9}.case-card{background:#e8f1ff}
+  .welcome{background:#f2f4f9;border-radius:999px;display:flex;align-items:center;gap:12px}.case-card{background:#e8f1ff}
+  .welcome h2{margin:0}
+  .avatar{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:50%;background:#0757d6;color:white;font-weight:800}
   .amounts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0}
   .amounts div{background:#e8f1ff;border-radius:10px;padding:8px 4px;text-align:center;font-size:.78rem}
   .amounts div:nth-child(2){background:#e8f8d7}
   .amounts strong{display:block;font-size:clamp(.8rem,3vw,1.05rem);overflow-wrap:anywhere}
-  #progress{width:100%;accent-color:#0757d6}
+  #progress{width:100%;height:12px;display:block;margin:8px 0 2px;appearance:none;border:0;border-radius:999px;overflow:hidden;background:#dfe5ef}
+  #progress::-webkit-progress-bar{background:#dfe5ef}
+  #progress::-webkit-progress-value{background:#0757d6;border-radius:999px}
+  #progress::-moz-progress-bar{background:#0757d6;border-radius:999px}
   #history{padding:0;list-style:none;margin:8px 0 0}
   #history li{margin-top:6px;padding:8px;background:#f2f4f9;border-radius:8px;overflow-wrap:anywhere}
-  .payment-action{display:block;width:100%;border:0;border-radius:999px;background:#0757d6;font-weight:700}
+  .history-row{display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap}
+  .history-ref{display:block;color:#52617a;font-size:.75rem;margin-top:3px}
+  .payment-status{border-radius:999px;padding:2px 8px;background:#fff1c4;color:#684600;font-size:.8rem}
+  .payment-status.confirmed{background:#e1f5ce;color:#24580c}
+  .payment-status.failed{background:#fae2e2;color:#872626}
+  .payment-action{display:block;width:100%;padding:13px;border:0;border-radius:999px;background:#0757d6;font-weight:700}
   #payment{margin-top:12px}
   @media(max-width:540px){
     body{padding:16px 12px}
@@ -59,7 +70,7 @@
       <strong>Espace client RDC</strong>
       <details><summary>Menu</summary><button id="refresh" type="button">Actualiser le solde</button> <button id="logout" type="button">Se déconnecter</button></details>
     </header>
-    <div class="account-card welcome"><h2 id="name"></h2></div>
+    <div class="account-card welcome"><span id="avatar" class="avatar" aria-hidden="true"></span><h2 id="name"></h2></div>
     <div class="account-card case-card"><h2>Mon dossier</h2><p id="service"></p></div>
     <div class="account-card">
       <h2>Paiement</h2>
@@ -118,6 +129,7 @@
     q("login").hidden = true;
     q("account").hidden = false;
     q("name").textContent = "Bienvenue, " + data.name;
+    q("avatar").textContent = data.name.trim().slice(0, 1).toLocaleUpperCase("fr");
     q("service").textContent = data.service || "";
     q("total").textContent = money(data.total);
     q("paid").textContent = money(data.paid);
@@ -144,13 +156,28 @@
     q("history").replaceChildren(...visibleInstallments.map(row => {
       const item = document.createElement("li");
       const labels = { PENDING: "En attente", CONFIRMED: "Confirmé", FAILED: "Échoué" };
-      item.textContent = new Date(row.created_at).toLocaleString("fr-FR") + " · " + money(row.amount)
-        + " · " + labels[row.status] + (row.reference ? " · Réf. " + row.reference : "");
+      const line = document.createElement("div");
+      line.className = "history-row";
+      const date = document.createElement("span");
+      date.textContent = new Date(row.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+      const amount = document.createElement("strong");
+      amount.textContent = money(row.amount);
+      const badge = document.createElement("span");
+      badge.className = "payment-status " + row.status.toLowerCase();
+      badge.textContent = labels[row.status] || row.status;
+      line.append(date, amount, badge);
+      item.append(line);
+      if (row.reference) {
+        const reference = document.createElement("small");
+        reference.className = "history-ref";
+        reference.textContent = "Réf. " + row.reference;
+        item.append(reference);
+      }
       if (row.resume_url) {
         const resume = document.createElement("a");
         resume.href = row.resume_url;
         resume.textContent = "Reprendre le paiement";
-        item.append(" · ", resume);
+        item.append(resume);
       }
       return item;
     }));
