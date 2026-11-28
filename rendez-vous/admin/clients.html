@@ -4,15 +4,23 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Clés clients | Believe Travel</title>
 <style>
-  body{font:16px/1.5 system-ui,sans-serif;max-width:38rem;margin:24px auto;padding:0 20px;color:#142343}
+  body{font:16px/1.5 system-ui,sans-serif;margin:0;background:#f5f7fb;color:#142343}
+  header{padding:20px clamp(16px,5vw,64px);background:#0b173e;color:white}
+  header a{color:inherit}
+  main{max-width:68rem;margin:auto;padding:24px 16px}
+  #create,#result,#accounts>li{background:white;border:1px solid #e4eaf4;border-radius:14px;padding:clamp(14px,3vw,24px);margin-bottom:16px}
   label,input{display:block}
-  input,button{font:inherit;padding:8px;margin:4px 0 12px}
-  input{box-sizing:border-box;width:100%}
-  li button{margin-left:12px}
+  input,button{font:inherit;padding:10px 12px;border-radius:8px}
+  input{box-sizing:border-box;width:100%;border:1px solid #c7d2e4;margin:4px 0 14px}
+  button{background:#1760cc;border:0;color:white;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.6;cursor:wait}
+  #accounts{padding:0;list-style:none}
+  li button{margin:4px 8px 4px 0}
   li{overflow-wrap:anywhere}
 </style>
-<a id="back" href="./">Administration des paiements</a>
-<h1>Espace client</h1>
+<header><a href="/rendez-vous/admin/">Retour à l’administration</a></header>
+<main>
+<h1>Gérer les clés clients</h1>
 <form id="create" hidden>
   <label for="name">Nom complet du client</label>
   <input id="name" required maxlength="120">
@@ -30,11 +38,9 @@
 </div>
 <p id="notice" role="status"></p>
 <ul id="accounts"></ul>
+</main>
 <script type="module">
   const q = id => document.getElementById(id);
-  if (window.parent !== window && new URLSearchParams(location.search).has("embedded")) {
-    q("back").hidden = true;
-  }
   const api = "https://believe-travel-payments.onrender.com/api/admin/clients";
   async function request(body) {
     const key = sessionStorage.getItem("believeAdminKey");
