@@ -42,9 +42,11 @@
 <main>
 <div class="heading" id="list-heading">
   <div><h1>Gestion des clients</h1><p>Consultez les dossiers et suivez les paiements échelonnés.</p></div>
-  <button id="new-client" type="button" aria-controls="create" aria-expanded="false" disabled>+ Nouveau client</button>
+  <button id="new-client" type="button" aria-haspopup="dialog" aria-controls="create-dialog" disabled>+ Nouveau client</button>
 </div>
-<form id="create" hidden>
+<dialog id="create-dialog" class="total-dialog" aria-labelledby="create-title">
+<h2 id="create-title">Nouveau client</h2>
+<form id="create" class="total-editor">
   <label for="name">Nom complet du client</label>
   <input id="name" required maxlength="120">
   <label for="contact">Numéro de contact</label>
@@ -54,7 +56,10 @@
   <label for="total">Montant total des frais en CDF</label>
   <input id="total" type="number" min="1" max="999999999999" step="1" required>
   <button>Créer une clé</button>
+  <button id="cancel-create" type="button" class="cancel">Annuler</button>
+  <p id="create-message" role="status"></p>
 </form>
+</dialog>
 <div id="result" hidden>
   <label for="client-key">Clé à transmettre en privé au client</label>
   <input id="client-key" readonly>
@@ -284,20 +289,25 @@
       else addActionDialog(item, "Révoquer la clé", "", "Confirmer la révocation",
         () => request({ revoke: account.id }), "Clé révoquée.");
   }
+  const createDialog = q("create-dialog");
   q("new-client").onclick = () => {
-    const form = q("create");
-    form.hidden = !form.hidden;
-    q("new-client").setAttribute("aria-expanded", String(!form.hidden));
-    if (!form.hidden) q("name").focus();
+    q("create-message").textContent = "";
+    createDialog.showModal();
+    q("name").focus();
   };
+  q("cancel-create").onclick = () => createDialog.close();
+  createDialog.addEventListener("cancel", event => {
+    if (q("cancel-create").disabled) event.preventDefault();
+  });
   q("query").oninput = render;
   q("service-filter").onchange = render;
   q("status-filter").onchange = render;
   q("create").onsubmit = async event => {
     event.preventDefault();
     const button = q("create").querySelector("button");
-    button.disabled = true;
-    await run(async () => {
+    button.disabled = q("cancel-create").disabled = true;
+    q("create-message").textContent = "Création en cours…";
+    try {
       const { key } = await request({
         name: q("name").value, contact: q("contact").value,
         service: q("service").value, total: q("total").value
@@ -305,9 +315,14 @@
       q("client-key").value = key;
       q("result").hidden = false;
       q("create").reset();
+      createDialog.close();
       await load();
-    });
-    button.disabled = false;
+      q("client-key").focus();
+    } catch (error) {
+      q(createDialog.open ? "create-message" : "notice").textContent = error.message;
+    } finally {
+      button.disabled = q("cancel-create").disabled = false;
+    }
   };
   run(load);
 </script>
