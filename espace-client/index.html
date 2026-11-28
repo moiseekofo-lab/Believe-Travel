@@ -64,7 +64,7 @@
 </style>
 <main>
   <h1 class="sr-only">Espace client</h1>
-  <form id="login">
+  <form id="login" hidden>
     <label class="sr-only" for="key">Clé privée</label>
     <input id="key" type="password" required autocomplete="off">
     <button><span class="sr-only">Accéder à mon dossier</span></button>
@@ -110,13 +110,28 @@
 <script type="module">
   const api = "https://believe-travel-payments.onrender.com/api/client";
   const q = id => document.getElementById(id);
-  const page = new URLSearchParams(location.search).get("page");
-  const historyPage = page === "historique";
-  const paymentPage = page === "versement";
-  q("overview").hidden = historyPage || paymentPage;
-  q("account-back").hidden = !historyPage && !paymentPage;
-  q("history-page").hidden = !historyPage;
-  q("payment-page").hidden = !paymentPage;
+  let canPay = false;
+  function renderPage() {
+    const page = new URLSearchParams(location.search).get("page");
+    const historyPage = page === "historique";
+    const paymentPage = page === "versement";
+    q("overview").hidden = historyPage || paymentPage;
+    q("account-back").hidden = !historyPage && !paymentPage;
+    q("history-page").hidden = !historyPage;
+    q("payment-page").hidden = !paymentPage;
+    q("payment").hidden = !paymentPage || !canPay;
+  }
+  for (const link of document.querySelectorAll("#account-back, #overview a")) {
+    link.addEventListener("click", event => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      history.pushState(null, "", link.href);
+      renderPage();
+      window.scrollTo(0, 0);
+    });
+  }
+  window.addEventListener("popstate", renderPage);
+  renderPage();
   let key = sessionStorage.getItem("believeClientKey") || "";
   let balanceRequest;
   let submittingPayment = false;
@@ -158,9 +173,9 @@
     q("progress").value = percent;
     q("percent").textContent = percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " % payé";
     const pending = data.installments.some(row => row.status === "PENDING");
-    const canPay = !pending && Number(data.remaining) > 0;
+    canPay = !pending && Number(data.remaining) > 0;
     q("open-payment").hidden = !canPay;
-    q("payment").hidden = !paymentPage || !canPay;
+    renderPage();
     q("payment-remaining").textContent = "Reste à payer : " + money(data.remaining);
     q("amount").max = data.remaining;
     const pendingCutoff = Date.now() - 5 * 60 * 1000;
@@ -246,6 +261,14 @@
   window.addEventListener("pageshow", event => {
     if (event.persisted) refreshVisibleBalance();
   });
-  if (key) load().catch(error => { q("notice").textContent = error.message; });
+  if (key) {
+    q("notice").textContent = "Chargement de votre espace…";
+    load().catch(error => {
+      q("login").hidden = false;
+      q("notice").textContent = error.message;
+    });
+  } else {
+    q("login").hidden = false;
+  }
 </script>
 </html>
