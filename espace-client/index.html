@@ -26,9 +26,14 @@
   .account-header img{width:54px;height:54px;object-fit:contain}
   .account-header>strong{border-left:1px solid #ccd6e8;padding-left:12px;font-size:clamp(.95rem,4vw,1.35rem)}
   .account-header strong,.amounts strong,#percent{color:#0757d6}
-  .account-header details{margin-left:auto;text-align:right}
-  .account-header summary{cursor:pointer;font-size:.85rem}
-  .account-header button{margin-top:6px}
+  .account-header details{margin-left:auto;position:relative}
+  .account-header summary{display:grid;place-items:center;width:40px;height:40px;cursor:pointer;list-style:none}
+  .account-header summary::-webkit-details-marker{display:none}
+  .menu-bars{width:23px;height:3px;border-radius:2px;background:#142343;box-shadow:0 -7px #142343,0 7px #142343}
+  .account-header button{position:absolute;right:0;top:100%;z-index:1;white-space:nowrap;box-shadow:0 6px 18px #14234330}
+  .account-link{display:block;color:#142343;text-decoration:none;font-weight:700}
+  a.payment-action{box-sizing:border-box;color:white;text-align:center;text-decoration:none}
+  #account-back{display:inline-block;margin-top:12px;color:#0757d6}
   .account-card{margin:14px 0;padding:14px;border:1px solid #e3eaf5;border-radius:16px;box-shadow:0 3px 10px #14234308}
   .account-card h2,.account-card p{margin:0 0 6px}
   .account-card h2{font-size:1.05rem}
@@ -68,8 +73,10 @@
     <header class="account-header">
       <img src="/assets/believe-travel-logo-cutout.png" alt="Believe Travel" width="54" height="54">
       <strong>Espace client RDC</strong>
-      <details><summary>Menu</summary><button id="refresh" type="button">Actualiser le solde</button> <button id="logout" type="button">Se déconnecter</button></details>
+      <details><summary aria-label="Menu"><span class="menu-bars" aria-hidden="true"></span></summary><button id="logout" type="button">Se déconnecter</button></details>
     </header>
+    <a id="account-back" href="/espace-client/" hidden>Retour à mon espace</a>
+    <div id="overview">
     <div class="account-card welcome"><span id="avatar" class="avatar" aria-hidden="true"></span><h2 id="name"></h2></div>
     <div class="account-card case-card"><h2>Mon dossier</h2><p id="service"></p></div>
     <div class="account-card">
@@ -82,8 +89,13 @@
       <div class="progress-label"><span>Progression du paiement</span><strong id="percent"></strong></div>
       <progress id="progress" max="100" value="0" aria-label="Pourcentage payé"></progress>
     </div>
-    <div class="account-card"><h2>Paiements enregistrés</h2><p id="empty-history">Aucun versement enregistré.</p><ul id="history"></ul></div>
-    <button id="open-payment" class="payment-action" type="button" aria-controls="payment" aria-expanded="false">Faire un versement</button>
+    <a class="account-card account-link" href="?page=historique">Paiements enregistrés <span aria-hidden="true">›</span></a>
+    <a id="open-payment" class="payment-action" href="?page=versement">Faire un versement</a>
+    </div>
+    <section id="history-page" class="account-card" hidden><h2>Paiements enregistrés</h2><p id="empty-history">Aucun versement enregistré.</p><ul id="history"></ul></section>
+    <section id="payment-page" hidden>
+    <h2>Faire un versement</h2>
+    <p id="payment-remaining"></p>
     <form id="payment" class="account-card" hidden>
       <label for="amount">Montant du versement en CDF</label>
       <input type="number" id="amount" min="1" step="1" required>
@@ -91,12 +103,20 @@
       <input type="tel" id="phone" autocomplete="tel" required>
       <button>Continuer vers Mobile Money</button>
     </form>
+    </section>
   </section>
   <p id="notice" role="status"></p>
 </main>
 <script type="module">
   const api = "https://believe-travel-payments.onrender.com/api/client";
   const q = id => document.getElementById(id);
+  const page = new URLSearchParams(location.search).get("page");
+  const historyPage = page === "historique";
+  const paymentPage = page === "versement";
+  q("overview").hidden = historyPage || paymentPage;
+  q("account-back").hidden = !historyPage && !paymentPage;
+  q("history-page").hidden = !historyPage;
+  q("payment-page").hidden = !paymentPage;
   let key = sessionStorage.getItem("believeClientKey") || "";
   let balanceRequest;
   let submittingPayment = false;
@@ -140,10 +160,8 @@
     const pending = data.installments.some(row => row.status === "PENDING");
     const canPay = !pending && Number(data.remaining) > 0;
     q("open-payment").hidden = !canPay;
-    if (!canPay) {
-      q("payment").hidden = true;
-      q("open-payment").setAttribute("aria-expanded", "false");
-    }
+    q("payment").hidden = !paymentPage || !canPay;
+    q("payment-remaining").textContent = "Reste à payer : " + money(data.remaining);
     q("amount").max = data.remaining;
     const pendingCutoff = Date.now() - 5 * 60 * 1000;
     const visibleInstallments = data.installments.filter(row =>
@@ -198,13 +216,6 @@
     event.preventDefault();
     key = q("key").value.trim();
     run(q("login").querySelector("button"), load);
-  };
-  q("refresh").onclick = () => run(q("refresh"), load);
-  q("open-payment").onclick = () => {
-    const form = q("payment");
-    form.hidden = !form.hidden;
-    q("open-payment").setAttribute("aria-expanded", String(!form.hidden));
-    if (!form.hidden) q("amount").focus();
   };
   q("logout").onclick = () => {
     sessionStorage.removeItem("believeClientKey");
